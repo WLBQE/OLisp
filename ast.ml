@@ -1,16 +1,18 @@
 type builtin = Add | Sub | Mult | Div | Mod | Eq | Neq | Lt | Gt | Leq | Geq |
                And | Or | Not | Lst | Cons | Car | Cdr | Append | Empty
 
-type var = Int | Double | Bool | String | List of typ | Class of cls
+type basic = Int | Double | Bool | String | List of typ
 and lambda = typ list * typ
-and typ = Var of var | Lambda of lambda
-and bind = typ * string
-and cls = member list * string list
-and member = MemConst of bind | MemVar of bind * expr
-and defvar = bind * expr
+and member = MemConst of string * typ * expr | MemVar of string * typ
+and cls = string * member list * string list
+and typ = Basic of basic | Lambda of lambda | Class of cls | Void
+and defvar = typ * string * expr
 and deflambda = lambda * string * string list * expr
-and def = DefVar of defvar | DefLambda of deflambda
-and expr = 
+and defmember = member
+and defconstructor = string list
+and defclass = string * defmember list * defconstructor
+and def = DefVar of defvar | DefLambda of deflambda | DefClass of defclass
+and expr =
     Lit of int
   | DoubleLit of string
   | BoolLit of bool
