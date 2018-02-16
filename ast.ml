@@ -14,7 +14,7 @@ and defclass = string * defmember list * defconstructor
 and def = DefVar of defvar | DefLambda of deflambda | DefClass of defclass
 and expr =
     Lit of int
-  | DoubleLit of float
+  | DoubleLit of string
   | BoolLit of bool
   | StringLit of string
   | Builtin of builtin
