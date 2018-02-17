@@ -24,6 +24,7 @@ rule token = parse
     | "empty"		   		{ EMPTY }
     | "began"                             { BEGAN }
     | "lambda"                            { LAMBDA }
+    | "class"                             { CLASS }
     | '('		   		{ LPAREN }
     | ')'		   		{ RPAREN }
     | '['				{ LBRACK }
