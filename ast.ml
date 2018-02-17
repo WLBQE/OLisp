@@ -1,5 +1,5 @@
 type builtin = Add | Sub | Mult | Div | Mod | Eq | Neq | Lt | Gt | Leq | Geq |
-               And | Or | Not | Lst | Cons | Car | Cdr | Append | Empty
+               And | Or | Not | Lst | Cons | Car | Cdr | Append | Empty | If
 
 type basic = Int | Double | Bool | String | List of typ
 and lambda = typ list * typ
