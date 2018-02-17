@@ -6,7 +6,7 @@ let digit = ['0'-'9']
 rule token = parse
       [' ' '\t' '\r' '\n']		{ token lexbuf }
     | "//" 	     	   		{ comment lexbuf }
-    | "->"		   		{ POINT }
+    | "->"		   		{ ARROW }
     | "if"		   		{ IF }
     | "and"		   		{ AND }
     | "or"		   		{ OR }
@@ -25,6 +25,7 @@ rule token = parse
     | "began"                             { BEGAN }
     | "lambda"                            { LAMBDA }
     | "class"                             { CLASS }
+    | "member"                            { MEMBER }
     | '('		   		{ LPAREN }
     | ')'		   		{ RPAREN }
     | '['				{ LBRACK }
