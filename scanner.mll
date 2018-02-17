@@ -22,7 +22,7 @@ rule token = parse
     | "cdr"		   		{ CDR }
     | "append"		   		{ APPEND }
     | "empty"		   		{ EMPTY }
-    | “began"                 { BEGAN }
+    | "began"                       { BEGAN }
     | '('		   		{ LPAREN }
     | ')'		   		{ RPAREN }
     | '['				{ LBRACK }
