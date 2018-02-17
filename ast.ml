@@ -1,17 +1,15 @@
 type builtin = Add | Sub | Mult | Div | Mod | Eq | Neq | Lt | Gt | Leq | Geq |
-               And | Or | Not | Lst | Cons | Car | Cdr | Append | Empty
+               And | Or | Not | Lst | Cons | Car | Cdr | Append | Empty | If
 
-type basic = Int | Double | Bool | String | List of typ
-and lambda = typ list * typ
+type var = Int | Double | Bool | String | List of typ | Lambda of typ list * typ
 and member = MemConst of string * typ * expr | MemVar of string * typ
 and cls = string * member list * string list
-and typ = Basic of basic | Lambda of lambda | Class of cls | Void
+and typ = Var of var| Class of cls | Void
 and defvar = typ * string * expr
-and deflambda = lambda * string * string list * expr
 and defmember = member
 and defconstructor = string list
 and defclass = string * defmember list * defconstructor
-and def = DefVar of defvar | DefLambda of deflambda | DefClass of defclass
+and def = DefVar of defvar | DefClass of defclass
 and expr =
     Lit of int
   | DoubleLit of string
@@ -21,5 +19,5 @@ and expr =
   | Id of string
   | Begin of expr list
   | Call of expr * expr list
-  | AnnoLambda of lambda * string list * expr
+  | LambdaExpr of typ list * typ * string list * expr
   | Define of def
