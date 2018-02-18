@@ -16,6 +16,7 @@ rule token = parse
     | "double"		   		{ DOUBLE }
     | "bool"		   		{ BOOL }
     | "string"		   		{ STRING }
+    | "void"                        { VOID }
     | "list"		   		{ LIST }
     | "cons"		   		{ CONS }
     | "car"		   		{ CAR }
@@ -26,6 +27,7 @@ rule token = parse
     | "lambda"                            { LAMBDA }
     | "class"                             { CLASS }
     | "member"                            { MEMBER }
+    | "constructor"                       { CONSTR }
     | '('		   		{ LPAREN }
     | ')'		   		{ RPAREN }
     | '['				{ LBRACK }
