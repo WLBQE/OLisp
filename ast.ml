@@ -19,3 +19,5 @@ and expr =
   | Call of expr * expr list
   | LambdaExpr of typ list * typ * string list * expr
   | Define of def
+
+type program = expr
