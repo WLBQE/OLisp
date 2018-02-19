@@ -12,13 +12,10 @@ open Ast
 %token <string> STRING DOUBLE ID
 %token EOF
 
-%start program
-%type <Ast.program> program
+%start expr
+%type <Ast.expr> expr
 
 %%
-
-program:
-  decls EOF { $1 }
 
 builtin:
   | PLUS             { Add    }
