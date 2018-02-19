@@ -6,38 +6,38 @@ let digit = ['0'-'9']
 rule token = parse
       [' ' '\t' '\r' '\n']		{ token lexbuf }
     | "//" 	     	   		{ comment lexbuf }
-    | "->"		   		{ ARROW }
+    | "-\>"		   		{ ARROW }
     | "if"		   		{ IF }
     | "and"		   		{ AND }
     | "or"		   		{ OR }
     | "not"		   		{ NOT }
-    | "define"		   		{ DEFINE }
+    | "define"		   	{ DEFINE }
     | "int"		   		{ INT }
-    | "double"		   		{ DOUBLE }
-    | "bool"		   		{ BOOL }
-    | "string"		   		{ STRING }
-    | "void"                        { VOID }
-    | "list"		   		{ LIST }
-    | "cons"		   		{ CONS }
+    | "double"		   	{ DOUBLE }
+    | "bool"		  	{ BOOL }
+    | "string"		   	{ STRING }
+    | "void"            { VOID }
+    | "list"		   	{ LIST }
+    | "cons"		   	{ CONS }
     | "car"		   		{ CAR }
     | "cdr"		   		{ CDR }
-    | "append"		   		{ APPEND }
-    | "empty"		   		{ EMPTY }
-    | "began"                             { BEGAN }
-    | "lambda"                            { LAMBDA }
-    | "class"                             { CLASS }
-    | "member"                            { MEMBER }
-    | "constructor"                       { CONSTR }
+    | "append"		   	{ APPEND }
+    | "empty"		   	{ EMPTY }
+    | "begin"           { BEGIN }
+    | "lambda"          { LAMBDA }
+    | "class"           { CLASS }
+    | "member"          { MEMBER }
+    | "constructor"     { CONSTR }
     | '('		   		{ LPAREN }
     | ')'		   		{ RPAREN }
     | '['				{ LBRACK }
     | ']'				{ RBRACK }
-    | '+'                  		{ PLUS }
-    | '-'                  		{ MINUS }
-    | '*'                  		{ TIMES }
-    | '/'                  		{ DIVIDE }
+    | '+'               { PLUS }
+    | '-'               { MINUS }
+    | '*'               { TIMES }
+    | '/'               { DIVIDE }
     | '%'		   		{ MODULE }
-    | '='                  		{ EQ }
+    | '='               { EQ }
     | "!="		   		{ NEQ }
     | '<'		   		{ LT }
     | "<="		   		{ LEQ }

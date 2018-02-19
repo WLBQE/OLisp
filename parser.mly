@@ -5,7 +5,7 @@ open Ast
 
 %token LPAREN RPAREN LBRACK RBRACK PLUS MINUS TIMES DIVIDE MODULE VOID
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR LST CONS CAR CDR APPEND EMPTY
-%token IF BEGAN
+%token IF BEGIN
 %token DEFINE LAMBDA CLASS MEMBER CONSTR ARROW
 %token <int> INT
 %token <bool> BOOL
@@ -106,9 +106,9 @@ expr:
   | STRING               { StringLit($1)          }
   | builtin              { Builtin($1)            }
   | ID                   { Id($1)                 }
-  | BEGAN expr_list_par  { Began($2)              }
-  | expr expr_list_par   { Call($1, $2)           }
+  | LPAREN BEGIN expr_list_par LPAREN  { Begin($3)              }
   | LPAREN LAMBDA typ formal_list_par expr
                          { LambdaExpr($3, $4, $5) }
   | LPAREN DEFINE def RPAREN
                          { Define($3)             }
+  | LPAREN expr expr_list_par RPAREN  { Call($2, $3)           }
