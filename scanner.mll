@@ -5,11 +5,11 @@ let digit = ['0'-'9']
 
 rule token = parse
       [' ' '\t' '\r' '\n']		{ token lexbuf }
-    | "//" 	     	   		{ comment lexbuf }
+    | "//" 	   	   		{ comment lexbuf }
     | "->"		   		{ ARROW }
     | "if"		   		{ IF }
     | "and"		   		{ AND }
-    | "or"		   		{ OR }
+    | "or"              { OR }
     | "not"		   		{ NOT }
     | "define"		   		{ DEFINE }
     | "int"		   		{ INT }
@@ -17,7 +17,7 @@ rule token = parse
     | "bool"		  		{ BOOL }
     | "string"		   		{ STRING }
     | "void"            		{ VOID }
-    | "list"		   		{ LIST }
+    | "list"		   		{ LST }
     | "cons"		   		{ CONS }
     | "car"		   		{ CAR }
     | "cdr"		   		{ CDR }
@@ -38,7 +38,7 @@ rule token = parse
     | '-'               		{ MINUS }
     | '*'               		{ TIMES }
     | '/'               		{ DIVIDE }
-    | '%'		   		{ MODULE }
+    | '%'		   		{ MODULO }
     | '='               		{ EQ }
     | "!="		   		{ NEQ }
     | '<'		   		{ LT }

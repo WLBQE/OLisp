@@ -3,9 +3,9 @@
 open Ast
 %}
 
-%token LPAREN RPAREN LBRACK RBRACK PLUS MINUS TIMES DIVIDE MODULE VOID
+%token LPAREN RPAREN LBRACK RBRACK PLUS MINUS TIMES DIVIDE MODULO VOID
 %token INT DOUBLE BOOL STRING
-%token NOT EQ NEQ LT LEQ GT GEQ AND OR LST CONS CAR CDR APPEND EMPTY LIST
+%token NOT EQ NEQ LT LEQ GT GEQ AND OR LST CONS CAR CDR APPEND EMPTY
 %token IF BEGIN
 %token DEFINE LAMBDA CLASS MEMBER CONSTR ARROW
 %token <int> LIT
@@ -23,7 +23,7 @@ builtin:
   | MINUS            { Sub    }
   | TIMES            { Mult   }
   | DIVIDE           { Div    }
-  | MODULE           { Mod    }
+  | MODULO           { Mod    }
   | EQ               { Eq     }
   | NEQ              { Neq    }
   | LT               { Lt     }
