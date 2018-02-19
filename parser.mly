@@ -100,7 +100,7 @@ expr_list_par:
   LPAREN expr_list RPAREN { List.rev $2 }
 
 expr_list:
-    expr { [$1] }
+         { [] }
   | expr_list expr { $2 :: $1 }
 
 expr:
