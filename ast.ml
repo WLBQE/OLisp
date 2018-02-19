@@ -1,9 +1,9 @@
 type builtin = Add | Sub | Mult | Div | Mod | Eq | Neq | Lt | Gt | Leq | Geq |
                And | Or | Not | Lst | Cons | Car | Cdr | Append | Empty | If
 
-type var = Int | Double | Bool | String | List of typ | Lambda of typ list * typ
+type var = Int | Double | Bool | String | List of typ | Lambda of typ list * typ | Class
 and member = MemConst of string * typ * expr | MemVar of string * typ
-and typ = Var of var| Class of string | Void
+and typ = Var of var | Void
 and defvar = typ * string * expr
 and constructor = string list
 and defclass = string * member list * constructor
