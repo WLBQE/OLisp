@@ -4,6 +4,7 @@ open Ast
 %}
 
 %token LPAREN RPAREN LBRACK RBRACK PLUS MINUS TIMES DIVIDE MODULE VOID
+%token LIT DOUBLELIT BLIT STRINGLIT
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR LST CONS CAR CDR APPEND EMPTY
 %token IF BEGIN
 %token DEFINE LAMBDA CLASS MEMBER CONSTR ARROW
@@ -42,7 +43,7 @@ builtin:
 
 var:
     INT               { Int }
-  | CLASS             { Class }  
+  | CLASS             { Class }
   | DOUBLE            { Double }
   | BOOL              { Bool }
   | STRING            { String }
@@ -100,10 +101,10 @@ expr_list:
   | expr_list expr { $2 :: $1 }
 
 expr:
-    INT                  { Lit($1)                }
-  | DOUBLE	             { DoubleLit($1)          }
-  | BOOL                 { BoolLit($1)            }
-  | STRING               { StringLit($1)          }
+    LIT                     { Lit($1)                }
+  | DOUBLELIT	              { DoubleLit($1)          }
+  | BLIT                 { BoolLit($1)            }
+  | STRINGLIT            { StringLit($1)          }
   | builtin              { Builtin($1)            }
   | ID                   { Id($1)                 }
   | LPAREN BEGIN expr_list_par RPAREN  { Begin($3)              }
