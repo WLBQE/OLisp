@@ -6,9 +6,8 @@ and member = MemConst of string * typ * expr | MemVar of string * typ
 and cls = string * member list * string list
 and typ = Var of var| Class of cls | Void
 and defvar = typ * string * expr
-and defmember = member
 and defconstructor = string list
-and defclass = string * defmember list * defconstructor
+and defclass = string * member list * defconstructor
 and def = DefVar of defvar | DefClass of defclass
 and expr =
     Lit of int
