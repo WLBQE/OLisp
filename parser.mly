@@ -13,10 +13,12 @@ open Ast
 %token <string> STRINGLIT DOUBLELIT ID
 %token EOF
 
-%start expr
-%type <Ast.expr> expr
+%start program
 
 %%
+
+program:
+  expr EOF { $1 }
 
 builtin:
     PLUS             { Add    }
