@@ -42,6 +42,7 @@ builtin:
 
 var:
     INT               { Int }
+  | CLASS             { Class }  
   | DOUBLE            { Double }
   | BOOL              { Bool }
   | STRING            { String }
@@ -63,27 +64,16 @@ mem_var:
 mem_const:
   LPAREN typ ID expr RPAREN { MemConst($3, $2, $4) }
 
-cls:
-  LPAREN CLASS ID mem_list constructor RPAREN { ($3, List.rev $4, $5) }
-
 typ_list:
     typ { [$1] }
   | typ_list typ { $2 :: $1 }
 
 typ:
     var  { Var($1) }
-  | cls  { Class($1) }
   | VOID { Void }
 
 defvar:
   LPAREN DEFINE LPAREN typ ID RPAREN expr RPAREN { ($4, $5, $7) }
-
-defmember:
-  mem { $1 }
-
-defmember_list:
-    defmember { [$1] }
-  | defmember_list defmember { $2 :: $1 }
 
 formal_list_par:
   LPAREN formal_list RPAREN { List.rev $2 }
@@ -95,11 +85,8 @@ formal_list:
 constructor:
   LPAREN CONSTR formal_list_par RPAREN { $3 }
 
-defconstructor:
-  LPAREN CONSTR formal_list_par RPAREN { $3 }
-
 defclass:
-  LPAREN CLASS ID defmember_list defconstructor RPAREN { ($3, List.rev $4, $5) }
+  LPAREN CLASS ID mem_list constructor RPAREN { ($3, List.rev $4, $5) }
 
 def:
     defvar    { DefVar($1) }
