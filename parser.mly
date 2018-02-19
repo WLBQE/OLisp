@@ -111,4 +111,4 @@ expr:
                          { LambdaExpr($3, $4, $5) }
   | LPAREN DEFINE def RPAREN
                          { Define($3)             }
-  | LPAREN expr expr_list_par RPAREN  { Call($2, $3)           }
+  | LPAREN expr expr_list RPAREN  { Call($2, $3)           }
