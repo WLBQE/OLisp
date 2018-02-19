@@ -74,7 +74,7 @@ typ:
   | VOID { Void }
 
 defvar:
-  LPAREN DEFINE LPAREN typ ID RPAREN expr RPAREN { ($4, $5, $7) }
+  LPAREN DEFINE LPAREN var ID RPAREN expr RPAREN { ($4, $5, $7) }
 
 formal_list_par:
   LPAREN formal_list RPAREN { List.rev $2 }
