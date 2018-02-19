@@ -1,4 +1,4 @@
-(* { open Parser } *)
+{ open Parser }
 
 let letter = ['a'-'z' 'A'-'Z']
 let digit = ['0'-'9']
