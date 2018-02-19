@@ -3,11 +3,10 @@ type builtin = Add | Sub | Mult | Div | Mod | Eq | Neq | Lt | Gt | Leq | Geq |
 
 type var = Int | Double | Bool | String | List of typ | Lambda of typ list * typ
 and member = MemConst of string * typ * expr | MemVar of string * typ
-and cls = string * member list * string list
-and typ = Var of var| Class of cls | Void
+and typ = Var of var| Class of string | Void
 and defvar = typ * string * expr
-and defconstructor = string list
-and defclass = string * member list * defconstructor
+and constructor = string list
+and defclass = string * member list * constructor
 and def = DefVar of defvar | DefClass of defclass
 and expr =
     Lit of int
