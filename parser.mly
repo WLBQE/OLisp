@@ -50,7 +50,7 @@ var:
   | STRING            { String }
   | LBRACK typ RBRACK { List($2) }
   | LPAREN typ_list ARROW typ RPAREN
-                      { Lambda(List.rev $1, $3) }
+                      { Lambda(List.rev $2, $4) }
 
 mem_list:
     mem: { [$1] }
