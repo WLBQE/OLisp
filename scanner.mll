@@ -6,7 +6,7 @@ let digit = ['0'-'9']
 rule token = parse
       [' ' '\t' '\r' '\n']		{ token lexbuf }
     | "//" 	     	   		{ comment lexbuf }
-    | "-\>"		   		{ ARROW }
+    | "->"		   		{ ARROW }
     | "if"		   		{ IF }
     | "and"		   		{ AND }
     | "or"		   		{ OR }
