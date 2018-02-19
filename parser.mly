@@ -122,7 +122,7 @@ expr:
   | STRING               { StringLit($1)          }
   | builtin              { Builtin($1)            }
   | ID                   { Id($1)                 }
-  | BEGAN expr_list_par  { Began($1)              }
+  | BEGAN expr_list_par  { Began($2)              }
   | expr expr_list_par   { Call($1, $2)           }
   | LPAREN LAMBDA typ formal_list_par expr
                          { LambdaExpr($3, $4, $5) }
