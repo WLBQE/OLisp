@@ -92,8 +92,8 @@ formal_list_par:
   LPAREN formal_list RPAREN { List.rev $2 }
 
 formal_list:
-  ID { [$1] }
-  formal_list ID { $2 :: $1 }
+    ID { [$1] }
+  | formal_list ID { $2 :: $1 }
 
 constructor:
   LPAREN CONSTR formal_list_par RPAREN { $3 }
@@ -112,8 +112,8 @@ expr_list_par:
   LPAREN expr_list RPAREN { List.rev $2 }
 
 expr_list:
-  expr { [$1] }
-  expr_list expr { $2 :: $1 }
+    expr { [$1] }
+  | expr_list expr { $2 :: $1 }
 
 expr:
     INT                  { Lit($1)                }
