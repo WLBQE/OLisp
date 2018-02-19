@@ -45,7 +45,7 @@ rule token = parse
     | ">="		   		{ GEQ }
     | eof				{ EOF }
     | digit+ as lxm	   		{ LIT(int_of_string lxm) }
-    | letter (letter | digit | '_')*    { ID(var) }
+    | letter (letter | digit | '_')* as var   { ID(var) }
     | digit+ '.' digit* as lxm		{ DOUBLELIT(lxm) }
     | '\"' [^ '\"']+ '\"' as lxm	{ STRINGLIT(lxm) }
     | _ as char	     		   	{ raise (Failure("illegal character " ^ Char.escaped char)) }
