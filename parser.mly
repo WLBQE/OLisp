@@ -70,8 +70,8 @@ cls:
   LPAREN CLASS ID mem_list constructor RPAREN { ($3, List.rev $4, $5) }
 
 typ_list:
-  typ { [$1] }
-  typ_list typ { $2 :: $1 }
+    typ { [$1] }
+  | typ_list typ { $2 :: $1 }
 
 typ:
     var  { Var($1) }
