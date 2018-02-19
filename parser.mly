@@ -18,7 +18,7 @@ open Ast
 %%
 
 builtin:
-  | PLUS             { Add    }
+    PLUS             { Add    }
   | MINUS            { Sub    }
   | TIMES            { Mult   }
   | DIVIDE           { Div    }
