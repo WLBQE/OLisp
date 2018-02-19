@@ -53,8 +53,8 @@ var:
                       { Lambda(List.rev $2, $4) }
 
 mem_list:
-    mem: { [$1] }
-  | mem_list mem: { $2 :: $1 }
+    mem { [$1] }
+  | mem_list mem { $2 :: $1 }
 
 mem:
     LPAREN MEMBER mem_var RPAREN { $3 }
@@ -70,8 +70,8 @@ cls:
   LPAREN CLASS ID mem_list constructor RPAREN { ($3, List.rev $4, $5) }
 
 typ_list:
-  typ: { [$1] }
-  typ_list typ: { $2 :: $1 }
+  typ { [$1] }
+  typ_list typ { $2 :: $1 }
 
 typ:
     var  { Var($1) }
@@ -85,7 +85,7 @@ defmember:
   mem { $1 }
 
 defmember_list:
-    defmember: { [$1] }
+    defmember { [$1] }
   | defmember_list defmember { $2 :: $1 }
 
 formal_list_par:
