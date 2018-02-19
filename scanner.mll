@@ -11,33 +11,35 @@ rule token = parse
     | "and"		   		{ AND }
     | "or"		   		{ OR }
     | "not"		   		{ NOT }
-    | "define"		   	{ DEFINE }
+    | "define"		   		{ DEFINE }
     | "int"		   		{ INT }
-    | "double"		   	{ DOUBLE }
-    | "bool"		  	{ BOOL }
-    | "string"		   	{ STRING }
-    | "void"            { VOID }
-    | "list"		   	{ LIST }
-    | "cons"		   	{ CONS }
+    | "double"		   		{ DOUBLE }
+    | "bool"		  		{ BOOL }
+    | "string"		   		{ STRING }
+    | "void"            		{ VOID }
+    | "list"		   		{ LIST }
+    | "cons"		   		{ CONS }
     | "car"		   		{ CAR }
     | "cdr"		   		{ CDR }
-    | "append"		   	{ APPEND }
-    | "empty"		   	{ EMPTY }
-    | "begin"           { BEGIN }
-    | "lambda"          { LAMBDA }
-    | "class"           { CLASS }
-    | "member"          { MEMBER }
-    | "constructor"     { CONSTR }
+    | "append"		   		{ APPEND }
+    | "empty"		   		{ EMPTY }
+    | "begin"           		{ BEGIN }
+    | "lambda"          		{ LAMBDA }
+    | "class"           		{ CLASS }
+    | "member"          		{ MEMBER }
+    | "constructor"     		{ CONSTR }
+    | "true"				{ BLIT(true) }
+    | "false"				{ BLIT(false) }
     | '('		   		{ LPAREN }
     | ')'		   		{ RPAREN }
     | '['				{ LBRACK }
     | ']'				{ RBRACK }
-    | '+'               { PLUS }
-    | '-'               { MINUS }
-    | '*'               { TIMES }
-    | '/'               { DIVIDE }
+    | '+'               		{ PLUS }
+    | '-'               		{ MINUS }
+    | '*'               		{ TIMES }
+    | '/'               		{ DIVIDE }
     | '%'		   		{ MODULE }
-    | '='               { EQ }
+    | '='               		{ EQ }
     | "!="		   		{ NEQ }
     | '<'		   		{ LT }
     | "<="		   		{ LEQ }
@@ -45,7 +47,7 @@ rule token = parse
     | ">="		   		{ GEQ }
     | eof				{ EOF }
     | digit+ as lxm	   		{ LIT(int_of_string lxm) }
-    | letter (letter | digit | '_')* as var   { ID(var) }
+    | letter (letter | digit | '_')* as var { ID(var) }
     | digit+ '.' digit* as lxm		{ DOUBLELIT(lxm) }
     | '\"' [^ '\"']+ '\"' as lxm	{ STRINGLIT(lxm) }
     | _ as char	     		   	{ raise (Failure("illegal character " ^ Char.escaped char)) }
