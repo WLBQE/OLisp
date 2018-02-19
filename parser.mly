@@ -106,9 +106,9 @@ expr:
   | STRING               { StringLit($1)          }
   | builtin              { Builtin($1)            }
   | ID                   { Id($1)                 }
-  | LPAREN BEGIN expr_list_par LPAREN  { Begin($3)              }
-  | LPAREN LAMBDA typ formal_list_par expr
-                         { LambdaExpr($3, $4, $5) }
+  | LPAREN BEGIN expr_list_par RPAREN  { Begin($3)              }
+  | LPAREN LAMBDA LPAREN typ_list ARROW typ RPAREN formal_list_par expr RPAREN
+                         { LambdaExpr($4, $6, $8, $9) }
   | LPAREN DEFINE def RPAREN
                          { Define($3)             }
   | LPAREN expr expr_list RPAREN  { Call($2, $3)           }
