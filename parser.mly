@@ -96,9 +96,6 @@ def:
     defvar    { DefVar($1) }
   | defclass  { DefClass($1) }
 
-expr_list_par:
-  LPAREN expr_list RPAREN { List.rev $2 }
-
 expr_list:
          { [] }
   | expr_list expr { $2 :: $1 }
@@ -110,7 +107,7 @@ expr:
   | STRINGLIT            { StringLit($1)          }
   | builtin              { Builtin($1)            }
   | ID                   { Id($1)                 }
-  | LPAREN BEGIN expr_list_par RPAREN  { Begin($3)              }
+  | LPAREN BEGIN expr_list RPAREN  { Begin($3)              }
   | LPAREN LAMBDA LPAREN typ_list ARROW typ RPAREN formal_list_par expr RPAREN
                          { LambdaExpr($4, $6, $8, $9) }
   | LPAREN DEFINE def RPAREN
