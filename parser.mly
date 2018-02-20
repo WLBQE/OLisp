@@ -55,7 +55,7 @@ var:
                       { Lambda(List.rev $2, $4) }
 
 mem_list:
-    mem { [$1] }
+     { [] }
   | mem_list mem { $2 :: $1 }
 
 mem:
@@ -69,7 +69,7 @@ mem_const:
   LPAREN typ ID expr RPAREN { MemConst($3, $2, $4) }
 
 typ_list:
-    typ { [$1] }
+     { [] }
   | typ_list typ { $2 :: $1 }
 
 typ:
@@ -83,7 +83,7 @@ formal_list_par:
   LPAREN formal_list RPAREN { List.rev $2 }
 
 formal_list:
-    ID { [$1] }
+       { [] }
   | formal_list ID { $2 :: $1 }
 
 constructor:
