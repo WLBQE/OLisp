@@ -7,3 +7,5 @@
 (define (int result) (fibonacci 5)) // result is now the 5th fibonacci number
 
 (print result)
+
+(print "Hello world, \"testers\"!\n")

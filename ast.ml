@@ -95,7 +95,7 @@ and string_of_expr = function
     Lit(lit) -> string_of_int lit
   | DoubleLit(dlit) -> dlit
   | BoolLit(blit) -> string_of_bool blit
-  | StringLit(slit) -> slit
+  | StringLit(slit) -> "\"" ^ (String.escaped slit) ^ "\""
   | BuiltIn(builtin) -> string_of_built_in builtin
   | Id(id) -> id
   | Call(exp, exps) -> "(" ^ (string_of_expr exp) ^ " " ^ (string_of_expr_list exps) ^ ")"
