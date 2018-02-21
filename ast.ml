@@ -34,10 +34,6 @@ and member =
 
 type program = expr list
 
-let rec generate_tabs = function
-    0 -> ""
-  | n -> "  " ^ generate_tabs (n - 1)
-
 let string_of_built_in = function
     Add -> "+"
   | Sub -> "-"
@@ -109,10 +105,10 @@ and string_of_expr = function
   | DefVar(typ, name, expr) -> "(define (" ^ (string_of_typ typ) ^ " " ^ name ^ ") " ^ (string_of_expr expr) ^ ")"
   | DefClass(name, members, formals) ->
       "(class " ^ name ^ " " ^ (string_of_member_list members) ^ "(constructor " ^ (string_of_formal_list formals) ^ "))"
+
 and string_of_expr_list = function
     [] -> ""
   | [expr] -> string_of_expr expr
   | expr :: tl -> (string_of_expr expr) ^ " " ^ (string_of_expr_list tl)
 
-let string_of_program program =
-  string_of_expr_list program
+let string_of_program program = string_of_expr_list program
