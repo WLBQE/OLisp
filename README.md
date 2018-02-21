@@ -1,6 +1,6 @@
 # OLisp
 Scanner and parser usage:
 ~~~~
-ocamlbuild olisp.native
+make
 ./olisp.native [file.olisp]
 ~~~~
