@@ -3,7 +3,7 @@ type builtin =
   | Eq | Neq | Lt | Gt | Leq | Geq
   | And | Or | Not
   | Lst | Cons | Car | Cdr | Append | Empty
-  | If | Begin
+  | If | Begin | Print
 
 type typ =
     Int
@@ -35,4 +35,4 @@ and member =
 type program = expr list
 
 let string_of_program program =
-  "法轮大法好"
+  "法轮大法好\n"

@@ -5,7 +5,7 @@
 %token PLUS MINUS TIMES DIVIDE MODULO
 %token AND OR NOT EQ NEQ LT GT LEQ GEQ
 %token LIST CONS CAR CDR APPEND EMPTY
-%token IF BEGIN
+%token IF BEGIN PRINT
 %token DEFINE LAMBDA ARROW
 %token CLASS MEMBER CONSTR
 %token <int> LIT
@@ -60,6 +60,7 @@ built_in:
   | EMPTY  { Empty }
   | IF     { If }
   | BEGIN  { Begin }
+  | PRINT  { Print }
 
 type_list:
     VOID          { [] }

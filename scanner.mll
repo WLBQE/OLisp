@@ -37,6 +37,7 @@ rule token = parse
   | "empty"       { EMPTY }
   | "if"          { IF }
   | "begin"       { BEGIN }
+  | "print"       { PRINT }
   | "define"      { DEFINE }
   | "lambda"      { LAMBDA }
   | "->"          { ARROW }
