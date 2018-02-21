@@ -1,23 +1,35 @@
-type builtin = Add | Sub | Mult | Div | Mod | Eq | Neq | Lt | Gt | Leq | Geq |
-               And | Or | Not | Lst | Cons | Car | Cdr | Append | Empty | If
+type builtin =
+    Add | Sub | Mult | Div | Mod
+  | Eq | Neq | Lt | Gt | Leq | Geq
+  | And | Or | Not
+  | Lst | Cons | Car | Cdr | Append | Empty
+  | If | Begin
 
-type var = Int | Double | Bool | String | List of typ | Lambda of typ list * typ | Class
-and member = MemConst of string * typ * expr | MemVar of string * typ
-and typ = Var of var | Void
-and defvar = var * string * expr
-and constructor = string list
-and defclass = string * member list * constructor
-and def = DefVar of defvar | DefClass of defclass
-and expr =
+type typ =
+    Int
+  | Double
+  | Bool
+  | String
+  | List of typ
+  | Lambda of typ list * ret_typ
+  | Class of string
+and ret_typ =
+    VarType of typ
+  | Void
+
+type expr =
     Lit of int
   | DoubleLit of string
   | BoolLit of bool
   | StringLit of string
-  | Builtin of builtin
+  | BuiltIn of builtin
   | Id of string
-  | Begin of expr list
   | Call of expr * expr list
-  | LambdaExpr of typ list * typ * string list * expr
-  | Define of def
+  | Lambda of typ list * ret_typ * string list * expr
+  | DefVar of typ * string * expr
+  | DefClass of string * member list * string list
+and member =
+    MemConst of string * typ * expr
+  | MemVar of string * typ
 
-type program = expr
+type program = expr list

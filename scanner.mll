@@ -4,54 +4,54 @@ let letter = ['a'-'z' 'A'-'Z']
 let digit = ['0'-'9']
 
 rule token = parse
-      [' ' '\t' '\r' '\n']		{ token lexbuf }
-    | "//" 	   	   		{ comment lexbuf }
-    | "->"		   		{ ARROW }
-    | "if"		   		{ IF }
-    | "and"		   		{ AND }
-    | "or"              { OR }
-    | "not"		   		{ NOT }
-    | "define"		   		{ DEFINE }
-    | "int"		   		{ INT }
-    | "double"		   		{ DOUBLE }
-    | "bool"		  		{ BOOL }
-    | "string"		   		{ STRING }
-    | "void"            		{ VOID }
-    | "list"		   		{ LST }
-    | "cons"		   		{ CONS }
-    | "car"		   		{ CAR }
-    | "cdr"		   		{ CDR }
-    | "append"		   		{ APPEND }
-    | "empty"		   		{ EMPTY }
-    | "begin"           		{ BEGIN }
-    | "lambda"          		{ LAMBDA }
-    | "class"           		{ CLASS }
-    | "member"          		{ MEMBER }
-    | "constructor"     		{ CONSTR }
-    | "true"				{ BLIT(true) }
-    | "false"				{ BLIT(false) }
-    | '('		   		{ LPAREN }
-    | ')'		   		{ RPAREN }
-    | '['				{ LBRACK }
-    | ']'				{ RBRACK }
-    | '+'               		{ PLUS }
-    | '-'               		{ MINUS }
-    | '*'               		{ TIMES }
-    | '/'               		{ DIVIDE }
-    | '%'		   		{ MODULO }
-    | '='               		{ EQ }
-    | "!="		   		{ NEQ }
-    | '<'		   		{ LT }
-    | "<="		   		{ LEQ }
-    | '>'		   		{ GT }
-    | ">="		   		{ GEQ }
-    | eof				{ EOF }
-    | digit+ as lxm	   		{ LIT(int_of_string lxm) }
-    | letter (letter | digit | '_')* as var { ID(var) }
-    | digit+ '.' digit* as lxm		{ DOUBLELIT(lxm) }
-    | '\"' [^ '\"']+ '\"' as lxm	{ STRINGLIT(lxm) }
-    | _ as char	     		   	{ raise (Failure("illegal character " ^ Char.escaped char)) }
+    [' ' '\t' '\r' '\n'] { token lexbuf }
+  | "//"          { comment lexbuf }
+  | '('           { LPAREN }
+  | ')'           { RPAREN }
+  | '['           { LBRACK }
+  | ']'           { RBRACK }
+  | "int"         { INT }
+  | "double"      { DOUBLE }
+  | "bool"        { BOOL }
+  | "string"      { STRING }
+  | "void"        { VOID }
+  | '+'           { PLUS }
+  | '-'           { MINUS }
+  | '*'           { TIMES }
+  | '/'           { DIVIDE }
+  | '%'           { MODULO }
+  | "and"         { AND }
+  | "or"          { OR }
+  | "not"         { NOT }
+  | '='           { EQ }
+  | "!="          { NEQ }
+  | '<'           { LT }
+  | '>'           { GT }
+  | "<="          { LEQ }
+  | ">="          { GEQ }
+  | "list"        { LIST }
+  | "cons"        { CONS }
+  | "car"         { CAR }
+  | "cdr"         { CDR }
+  | "append"      { APPEND }
+  | "empty"       { EMPTY }
+  | "if"          { IF }
+  | "begin"       { BEGIN }
+  | "define"      { DEFINE }
+  | "lambda"      { LAMBDA }
+  | "->"          { ARROW }
+  | "class"       { CLASS }
+  | "member"      { MEMBER }
+  | "constructor" { CONSTR }
+  | "true"        { BOOLLIT(true) }
+  | "false"       { BOOLLIT(false) }
+  | digit+ as lxm { LIT(int_of_string lxm) }
+  | letter (letter | digit | '_')* as lxm { ID(lxm) }
+  | digit+ '.' digit+ as lxm { DOUBLELIT(lxm) }
+  | '\"' [^'\"']+ '\"' as lxm { STRINGLIT(lxm) }
+  | eof { EOF }
+  | _ as char { raise (Failure("Illegal character: " ^ Char.escaped char)) }
 
 and comment = parse
-      '\n'		   { token lexbuf }
-    | _			   { comment lexbuf }
+    '\n' { token lexbuf }
+  | _    { comment lexbuf }

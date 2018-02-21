@@ -1,16 +1,16 @@
+%{ open Ast %}
 
-%{
-open Ast
-%}
-
-%token LPAREN RPAREN LBRACK RBRACK PLUS MINUS TIMES DIVIDE MODULO VOID
-%token INT DOUBLE BOOL STRING
-%token NOT EQ NEQ LT LEQ GT GEQ AND OR LST CONS CAR CDR APPEND EMPTY
+%token LPAREN RPAREN LBRACK RBRACK
+%token INT DOUBLE BOOL STRING VOID
+%token PLUS MINUS TIMES DIVIDE MODULO
+%token AND OR NOT EQ NEQ LT GT LEQ GEQ
+%token LIST CONS CAR CDR APPEND EMPTY
 %token IF BEGIN
-%token DEFINE LAMBDA CLASS MEMBER CONSTR ARROW
+%token DEFINE LAMBDA ARROW
+%token CLASS MEMBER CONSTR
 %token <int> LIT
-%token <bool> BLIT
-%token <string> STRINGLIT DOUBLELIT ID
+%token <bool> BOOLLIT
+%token <string> ID STRINGLIT DOUBLELIT
 %token EOF
 
 %start program
@@ -19,97 +19,77 @@ open Ast
 %%
 
 program:
-  expr EOF { $1 }
-
-builtin:
-    PLUS             { Add    }
-  | MINUS            { Sub    }
-  | TIMES            { Mult   }
-  | DIVIDE           { Div    }
-  | MODULO           { Mod    }
-  | EQ               { Eq     }
-  | NEQ              { Neq    }
-  | LT               { Lt     }
-  | GT               { Gt     }
-  | LEQ              { Leq    }
-  | GEQ              { Geq    }
-  | AND              { And    }
-  | OR               { Or     }
-  | NOT              { Not    }
-  | LST              { Lst    }
-  | CONS             { Cons   }
-  | CAR              { Car    }
-  | CDR              { Cdr    }
-  | APPEND           { Append }
-  | EMPTY            { Empty  }
-  | IF               { If     }
-
-var:
-    INT               { Int }
-  | CLASS             { Class }
-  | DOUBLE            { Double }
-  | BOOL              { Bool }
-  | STRING            { String }
-  | LBRACK typ RBRACK { List($2) }
-  | LPAREN typ_list ARROW typ RPAREN
-                      { Lambda(List.rev $2, $4) }
-
-mem_list:
-     { [] }
-  | mem_list mem { $2 :: $1 }
-
-mem:
-    LPAREN MEMBER mem_var RPAREN { $3 }
-  | LPAREN MEMBER mem_const RPAREN { $3 }
-
-mem_var:
-  LPAREN typ ID RPAREN { MemVar($3, $2) }
-
-mem_const:
-  LPAREN typ ID expr RPAREN { MemConst($3, $2, $4) }
-
-typ_list:
-     { [] }
-  | typ_list typ { $2 :: $1 }
-
-typ:
-    var  { Var($1) }
-  | VOID { Void }
-
-defvar:
-  LPAREN DEFINE LPAREN var ID RPAREN expr RPAREN { ($4, $5, $7) }
-
-formal_list_par:
-  LPAREN formal_list RPAREN { List.rev $2 }
-
-formal_list:
-       { [] }
-  | formal_list ID { $2 :: $1 }
-
-constructor:
-  LPAREN CONSTR formal_list_par RPAREN { $3 }
-
-defclass:
-  LPAREN CLASS ID mem_list constructor RPAREN { ($3, List.rev $4, $5) }
-
-def:
-    defvar    { DefVar($1) }
-  | defclass  { DefClass($1) }
+    expr_list EOF { List.rev $1 }
 
 expr_list:
-         { [] }
+    /* nothing */  { [] }
   | expr_list expr { $2 :: $1 }
 
 expr:
-    LIT                     { Lit($1)                }
-  | DOUBLELIT	              { DoubleLit($1)          }
-  | BLIT                 { BoolLit($1)            }
-  | STRINGLIT            { StringLit($1)          }
-  | builtin              { Builtin($1)            }
-  | ID                   { Id($1)                 }
-  | LPAREN BEGIN expr_list RPAREN  { Begin($3)              }
-  | LPAREN LAMBDA LPAREN typ_list ARROW typ RPAREN formal_list_par expr RPAREN
-                         { LambdaExpr($4, $6, $8, $9) }
-  | LPAREN DEFINE def RPAREN
-                         { Define($3)             }
-  | LPAREN expr expr_list RPAREN  { Call($2, $3)           }
+    LIT       { Lit($1) }
+  | DOUBLELIT { DoubleLit($1) }
+  | BOOLLIT   { BoolLit($1) }
+  | STRINGLIT { StringLit($1) }
+  | built_in  { BuiltIn($1) }
+  | ID        { Id($1) }
+  | LPAREN expr expr_list RPAREN { Call($2, $3) }
+  | LPAREN LAMBDA LPAREN type_list ARROW ret_type RPAREN LPAREN formal_list RPAREN expr RPAREN { Lambda($4, $6, List.rev $9, $11) }
+  | LPAREN DEFINE LPAREN typ ID RPAREN expr RPAREN { DefVar($4, $5, $7) }
+  | LPAREN CLASS ID mem_list LPAREN CONSTR formal_list RPAREN RPAREN { DefClass($3, List.rev $4, List.rev $7) }
+
+built_in:
+    PLUS   { Add }
+  | MINUS  { Sub }
+  | TIMES  { Mult }
+  | DIVIDE { Div }
+  | MODULO { Mod }
+  | EQ     { Eq }
+  | NEQ    { Neq }
+  | LT     { Lt }
+  | GT     { Gt }
+  | LEQ    { Leq }
+  | GEQ    { Geq }
+  | AND    { And }
+  | OR     { Or }
+  | NOT    { Not }
+  | LIST   { Lst }
+  | CONS   { Cons }
+  | CAR    { Car }
+  | CDR    { Cdr }
+  | APPEND { Append }
+  | EMPTY  { Empty }
+  | IF     { If }
+  | BEGIN  { Begin }
+
+type_list:
+    VOID          { [] }
+  | var_type_list { $1 }
+
+var_type_list:
+    typ               { [$1] }
+  | var_type_list typ { $2 :: $1 }
+
+typ:
+    INT    { Int }
+  | DOUBLE { Double }
+  | BOOL   { Bool }
+  | STRING { String }
+  | ID     { Class($1) }
+  | LBRACK typ RBRACK { List($2) }
+  | LPAREN type_list ARROW ret_type RPAREN { Lambda(List.rev $2, $4) }
+
+ret_type:
+    typ  { VarType($1) }
+  | VOID { Void }
+
+formal_list:
+    /* nothing */  { [] }
+  | formal_list ID { $2 :: $1 }
+
+mem_list:
+    mem          { [$1] }
+  | mem_list mem { $2 :: $1 }
+
+mem:
+    LPAREN MEMBER LPAREN typ ID RPAREN RPAREN      { MemVar($5, $4) }
+  | LPAREN MEMBER LPAREN typ ID RPAREN expr RPAREN { MemConst($5, $4, $7) }
