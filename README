@@ -1,0 +1,2 @@
+ocamlbuild olisp.native
+./microc.native test
