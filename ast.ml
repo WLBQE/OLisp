@@ -25,7 +25,7 @@ type expr =
   | BuiltIn of builtin
   | Id of string
   | Call of expr * expr list
-  | Lambda of typ list * ret_typ * string list * expr
+  | LambdaExpr of typ list * ret_typ * string list * expr
   | DefVar of typ * string * expr
   | DefClass of string * member list * string list
 and member =
@@ -33,3 +33,6 @@ and member =
   | MemVar of string * typ
 
 type program = expr list
+
+let string_of_program program =
+  "法轮大法好"

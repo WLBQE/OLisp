@@ -32,8 +32,8 @@ expr:
   | STRINGLIT { StringLit($1) }
   | built_in  { BuiltIn($1) }
   | ID        { Id($1) }
-  | LPAREN expr expr_list RPAREN { Call($2, $3) }
-  | LPAREN LAMBDA LPAREN type_list ARROW ret_type RPAREN LPAREN formal_list RPAREN expr RPAREN { Lambda($4, $6, List.rev $9, $11) }
+  | LPAREN expr expr_list RPAREN { Call($2, List.rev $3) }
+  | LPAREN LAMBDA LPAREN type_list ARROW ret_type RPAREN LPAREN formal_list RPAREN expr RPAREN { LambdaExpr($4, $6, List.rev $9, $11) }
   | LPAREN DEFINE LPAREN typ ID RPAREN expr RPAREN { DefVar($4, $5, $7) }
   | LPAREN CLASS ID mem_list LPAREN CONSTR formal_list RPAREN RPAREN { DefClass($3, List.rev $4, List.rev $7) }
 
@@ -63,7 +63,7 @@ built_in:
 
 type_list:
     VOID          { [] }
-  | var_type_list { $1 }
+  | var_type_list { List.rev $1 }
 
 var_type_list:
     typ               { [$1] }
