@@ -12,9 +12,9 @@ let digit = ['0'-'9']
 rule token = parse
     [' ' '\t' '\r' '\n'] { reset s; token lexbuf }
   | "//"          { reset s; comment lexbuf }
-  | '('           { check s; reset s; LPAREN }
+  | '('           { reset s; LPAREN }
   | ')'           { reset s; RPAREN }
-  | '['           { check s; reset s; LBRACK }
+  | '['           { reset s; LBRACK }
   | ']'           { reset s; RBRACK }
   | "int"         { check s; INT }
   | "double"      { check s; DOUBLE }
