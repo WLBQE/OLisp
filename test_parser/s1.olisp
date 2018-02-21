@@ -3,3 +3,7 @@
     (if (or (= n 0) (= n 1))
       1
       (+ (fibonacci (- n 1)) (fibonacci (- n 2))))))
+
+(define (int result) (fibonacci 5)) // result is now the 5th fibonacci number
+
+(print result)
