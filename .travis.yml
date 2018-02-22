@@ -1,2 +1,3 @@
 script:
   ./test_parser.sh
+  echo "blah"
