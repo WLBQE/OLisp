@@ -1,9 +1,9 @@
 before_install:
-  sudo apt-get update -qq
-  sudo apt-get install -qq base-ocamlbuild
+- sudo apt-get update -qq
+- sudo apt-get install -qq base-ocamlbuild
 
 install:
-  make
+- make
 
 script:
-  ./test_parser.sh
+- ./test_parser.sh
