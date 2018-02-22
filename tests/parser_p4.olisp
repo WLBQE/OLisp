@@ -1,6 +1,11 @@
+(class trivial
+  (member (int bar) 1)
+  (constructor))
+
 (class circle
   (member (double radius))
   (member (string color))
+  (member (trivial foo) (trivial))
   (member ((void -> double) getArea)
     (lambda (void -> double)()
       (* radius radius 3.14)))
@@ -8,4 +13,6 @@
 
 (define (circle c) (circle 1 "Black"))
 
-(print circle.color)
+(print c.color)
+
+(print c.foo.bar)

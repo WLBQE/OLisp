@@ -24,7 +24,7 @@ type expr =
   | StringLit of string
   | BuiltIn of built_in
   | Id of string
-  | MemId of string * string
+  | MemId of string list * string
   | Call of expr * expr list
   | LambdaExpr of typ list * ret_typ * string list * expr
   | DefVar of typ * string * expr
@@ -36,9 +36,9 @@ and member =
 type program = expr list
 
 let split_mem_id mem_id =
-  let str_list = Str.split (Str.regexp "\\.") mem_id in
+  let str_list = List.rev (Str.split (Str.regexp "\\.") mem_id) in
     match str_list with
-      fst :: snd :: [] -> MemId(fst, snd)
+      mem :: obj -> MemId(List.rev obj, mem)
     | _ -> raise (Failure("Invalid class member identifier"))
 
 let string_of_built_in = function
@@ -72,13 +72,12 @@ let rec string_of_typ = function
   | Bool -> "bool"
   | String -> "string"
   | List(typ) -> "[" ^ string_of_typ typ ^ "]"
-  | Lambda(typ_list, ret_typ) -> "(" ^ string_of_typ_list typ_list ^ " -> " ^ string_of_ret_typ ret_typ ^ ")"
+  | Lambda(typ_list, ret_typ) -> "(" ^ string_of_typ_list typ_list ^ "-> " ^ string_of_ret_typ ret_typ ^ ")"
   | Class(name) -> name
 
 and string_of_typ_list = function
-    [] -> ""
-  | [typ] -> string_of_typ typ
-  | typ :: tl -> string_of_typ typ ^ " " ^ string_of_typ_list tl
+    [] -> "void "
+  | lst -> List.fold_left (fun str typ -> str ^ string_of_typ typ ^ " ") "" lst
 
 and string_of_ret_typ = function
     VarType(typ) -> string_of_typ typ
@@ -90,13 +89,8 @@ let rec string_of_formal_list = function
   | name :: tl -> name ^ " " ^ string_of_formal_list tl
 
 let rec string_of_member = function
-    MemConst(name, typ, expr) -> "(member " ^ string_of_typ typ ^ " " ^ name ^ ") " ^ string_of_expr expr ^ ")"
-  | MemVar(name, typ) -> "(member " ^ string_of_typ typ ^ " " ^ name ^ "))"
-
-and string_of_member_list = function
-    [] -> ""
-  | [member] -> string_of_member member
-  | member :: tl -> string_of_member member ^ " " ^ string_of_member_list tl
+    MemConst(name, typ, expr) -> "(member (" ^ string_of_typ typ ^ " " ^ name ^ ") " ^ string_of_expr expr ^ ")"
+  | MemVar(name, typ) -> "(member (" ^ string_of_typ typ ^ " " ^ name ^ "))"
 
 and string_of_expr = function
     Lit(lit) -> string_of_int lit
@@ -105,14 +99,16 @@ and string_of_expr = function
   | StringLit(slit) -> "\"" ^ String.escaped slit ^ "\""
   | BuiltIn(builtin) -> string_of_built_in builtin
   | Id(id) -> id
-  | MemId(cls, mem) -> cls ^ "." ^ mem
-  | Call(exp, exps) -> "(" ^ string_of_expr exp ^ " " ^ string_of_expr_list exps ^ ")"
+  | MemId(cls, mem) -> List.fold_left (fun str cls -> str ^ cls ^ ".") "" cls ^ mem
+  | Call(exp, exps) ->
+      "(" ^ string_of_expr exp ^ List.fold_left (fun str exp -> str ^ " " ^ string_of_expr exp) "" exps ^ ")"
   | LambdaExpr(typ_list, ret_typ, formal_list, expr) ->
-      "(lambda (" ^ string_of_typ_list typ_list ^ " -> " ^ string_of_ret_typ ret_typ ^ ") ("
+      "(lambda (" ^ string_of_typ_list typ_list ^ "-> " ^ string_of_ret_typ ret_typ ^ ") ("
         ^ string_of_formal_list formal_list ^ ") " ^ string_of_expr expr ^ ")"
   | DefVar(typ, name, expr) -> "(define (" ^ string_of_typ typ ^ " " ^ name ^ ") " ^ string_of_expr expr ^ ")"
   | DefClass(name, members, formals) ->
-      "(class " ^ name ^ " " ^ string_of_member_list members ^ "(constructor " ^ string_of_formal_list formals ^ "))"
+      "(class " ^ name ^ " " ^ List.fold_left (fun str mem -> str ^ string_of_member mem ^ " ") "" members
+        ^ "(constructor" ^ List.fold_left (fun str formal -> str ^ " " ^ formal) "" formals ^ "))"
 
 and string_of_expr_list = function
     [] -> ""

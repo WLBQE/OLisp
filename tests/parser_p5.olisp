@@ -1,47 +1,34 @@
 (class grade
-  (member (double total)) // a floating-point member named total
-  (member (double plt)) // a floating-point member named plt
-  // member function less-than, takes a grade, returns a boolean
+  (member (double total))
+  (member (double plt))
   (member ((grade -> bool) less_than) 
-  	  (lambda (grade -> bool) (other)
-          (if (= total othertotal)
-              (< plt otherplt)
-              (< total othertotal))))
-  // specifies how should programmers construct an object
+    (lambda (grade -> bool) (other)
+      (if (= total othertotal)
+        (< plt otherplt)
+        (< total othertotal))))
   (constructor total plt))
 
-// This function takes two arguments, a list of grades named lst,
-// and a function cond which takes a grade and returns a boolean.
-// It returns the list of the elements in lst such that (cond lst) is true.
-
 (define (([grade] (grade -> bool) -> [grade]) filter)
-        (lambda ([grade] (grade -> bool) -> [grade]) (lst cond)
-	(if (empty lst)
-            (list)
-            (if (cond (car lst))
-                (cons (car lst)
-                      (filter (cdr lst) cond))
-                (filter (cdr lst) cond))))) // calling filter recursively
+  (lambda ([grade] (grade -> bool) -> [grade]) (lst cond)
+    (if (empty lst)
+      (list)
+      (if (cond (car lst))
+        (cons (car lst)
+          (filter (cdr lst) cond))
+        (filter (cdr lst) cond)))))
 
-// The quicksort function for grades
 (define (([grade] -> [grade]) qsort)
-	(lambda ([grade] -> [grade]) (lst)
-        (if (empty lst)
-	    (list)
-            // concatenates three lists: the list of grades less than the first,
-            // a single-element list containing the first grade, and
-            // the list of grades not less than the first (exclusive).
-	    (append (qsort (filter lst less_than))
-                    (list (car lst)) // makes an 1-element list
-                    // a lambda in OLisp looks like:
-                    // (lambda (type... -> type) (variable names...) (body))
-                    (qsort (filter lst (lambda (grade -> bool) (elem)
-			   (not (less_than elem)))))))))
+  (lambda ([grade] -> [grade]) (lst)
+    (if (empty lst)
+      (list)
+      (append (qsort (filter lst less_than))
+        (list (car lst))
+        (qsort (filter lst (lambda (grade -> bool) (elem)
+          (not (grade.less_than elem)))))))))
 
-// define some grades
 (define (grade Alice) (grade 3.8 4.0))
 (define (grade Bob) (grade 3.2 2.67))
 (define (grade Carol) (grade 3.8 3.67))
 (define (grade Jiaqi) (grade 4.33 4.33))
-// the name “sorted” is now bound to the sorted list (ascending) of grades
-(define ([grade] sorted) (qsort (list Alice Bob Carol Jiaqi))) //test
+
+(define ([grade] sorted) (qsort (list Alice Bob Carol Jiaqi)))

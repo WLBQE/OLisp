@@ -54,7 +54,7 @@ rule token = parse
   | "false"       { check s; BOOLLIT(false) }
   | digit+ as lxm { check s; LIT(int_of_string lxm) }
   | letter (letter | digit | '_')* as lxm { check s; ID(lxm) }
-  | letter (letter | digit | '_')* '.' letter (letter | digit | '_')* as lxm { check s; MEMID(lxm) }
+  | (letter (letter | digit | '_')* '.')+ letter (letter | digit | '_')* as lxm { check s; MEMID(lxm) }
   | digit+ '.' digit+ as lxm { check s; DOUBLELIT(lxm) }
   | '"'           { check s; string_lit (Buffer.create 16) lexbuf }
   | eof           { EOF }
