@@ -1,0 +1,2 @@
+// Illegal identifier
+(+ 1nvalid valid)
