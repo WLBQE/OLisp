@@ -1,1 +1,7 @@
-
+(class circle
+  (member (double radius))
+  (member (string color))
+  (member ((void -> double) getArea)
+    (lambda (void -> double)()
+      (* radius radius 3.14)))
+  (constructor radius color))
