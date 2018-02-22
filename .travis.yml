@@ -1,6 +1,8 @@
 before_install:
-- opam update
-- opam install ocamlbuild
+- sudo apt-get upgrade -qq
+- sudo apt-get install opam -qq
+- eval `opam config env`
+- opam install -q -y ocamlbuild
 
 install:
 - make
