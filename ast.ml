@@ -24,6 +24,7 @@ type expr =
   | StringLit of string
   | BuiltIn of built_in
   | Id of string
+  | MemId of string * string
   | Call of expr * expr list
   | LambdaExpr of typ list * ret_typ * string list * expr
   | DefVar of typ * string * expr
@@ -33,6 +34,10 @@ and member =
   | MemVar of string * typ
 
 type program = expr list
+
+let split_mem_id mem_id = match (Str.split (Str.regexp ".") mem_id) with
+    fst :: snd :: [] -> MemId(fst, snd)
+  | _ -> raise (Failure("Invalid class member identifier"))
 
 let string_of_built_in = function
     Add -> "+"
@@ -98,6 +103,7 @@ and string_of_expr = function
   | StringLit(slit) -> "\"" ^ String.escaped slit ^ "\""
   | BuiltIn(builtin) -> string_of_built_in builtin
   | Id(id) -> id
+  | MemId(cls, mem) -> cls ^ "." ^ mem
   | Call(exp, exps) -> "(" ^ string_of_expr exp ^ " " ^ string_of_expr_list exps ^ ")"
   | LambdaExpr(typ_list, ret_typ, formal_list, expr) ->
       "(lambda (" ^ string_of_typ_list typ_list ^ " -> " ^ string_of_ret_typ ret_typ ^ ") ("

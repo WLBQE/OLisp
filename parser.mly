@@ -7,10 +7,10 @@
 %token LIST CONS CAR CDR APPEND EMPTY
 %token IF BEGIN PRINT
 %token DEFINE LAMBDA ARROW
-%token CLASS MEMBER CONSTR
+%token CLASS MEMBER CONSTR DOT
 %token <int> LIT
 %token <bool> BOOLLIT
-%token <string> ID STRINGLIT DOUBLELIT
+%token <string> ID MEMID STRINGLIT DOUBLELIT
 %token EOF
 
 %start program
@@ -32,6 +32,7 @@ expr:
   | STRINGLIT { StringLit($1) }
   | built_in  { BuiltIn($1) }
   | ID        { Id($1) }
+  | MEMID     { Ast.split_mem_id $1 }
   | LPAREN expr expr_list RPAREN { Call($2, List.rev $3) }
   | LPAREN LAMBDA LPAREN type_list ARROW ret_type RPAREN LPAREN formal_list RPAREN expr RPAREN { LambdaExpr($4, $6, List.rev $9, $11) }
   | LPAREN DEFINE LPAREN typ ID RPAREN expr RPAREN { DefVar($4, $5, $7) }
