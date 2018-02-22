@@ -1,5 +1,7 @@
 Scanner and parser build:
  make
+
+Execute the compiler (scanner and parser only):
  ./olisp.native [file.olisp]`
 
 Test script usage: 
