@@ -63,6 +63,7 @@ rule token = parse
 and comment = parse
     '\n' { token lexbuf }
   | _    { comment lexbuf }
+  | eof	 { EOF }
 
 and string_lit buf = parse
     '"'           { STRINGLIT(Buffer.contents buf) }
