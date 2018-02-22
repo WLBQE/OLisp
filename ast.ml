@@ -35,9 +35,11 @@ and member =
 
 type program = expr list
 
-let split_mem_id mem_id = match (Str.split (Str.regexp ".") mem_id) with
-    fst :: snd :: [] -> MemId(fst, snd)
-  | _ -> raise (Failure("Invalid class member identifier"))
+let split_mem_id mem_id =
+  let str_list = Str.split (Str.regexp "\\.") mem_id in
+    match str_list with
+      fst :: snd :: [] -> MemId(fst, snd)
+    | _ -> raise (Failure("Invalid class member identifier"))
 
 let string_of_built_in = function
     Add -> "+"
