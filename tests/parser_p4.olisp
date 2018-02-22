@@ -5,3 +5,7 @@
     (lambda (void -> double)()
       (* radius radius 3.14)))
   (constructor radius color))
+
+(define (circle c) (circle 1 "Black"))
+
+(print circle.color)
