@@ -1,10 +1,1 @@
-(define (([int] -> [int]) reverseList)
-    (lambda ([int] -> [int]) (lst)
-        (if (empty lst)
-            (list)
-            (append (reverseList (cdr lst))
-                    (list (car lst)))))
 
-(define ([int] result)(reverseList [1,2,3])
-
-(print result)
