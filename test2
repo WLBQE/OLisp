@@ -1,1 +1,0 @@
-(define ((int int -> int) fun) (lambda (int int -> int) (a b) (+ a b)))
