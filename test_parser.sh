@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 pos_tests=5
 neg_tests=5
@@ -6,28 +6,28 @@ passed=0
 
 for (( i = 0; i < pos_tests; i++ )); do
 	filename="parser_p$((i + 1)).olisp"
-	echo "\nPositive test: $filename"
+	printf "\nPositive test: $filename\n"
 	./olisp.native "tests/$filename"
 	if [[ $? -eq 0 ]]; then
-		echo "Accepted! Test passed."
+		printf "Accepted! Test passed.\n"
 		((passed++))
 	else
-		echo "Rejected! Test failed."
+		printf "Rejected! Test failed.\n"
 	fi
 done
 
 for (( i = 0; i < neg_tests; i++ )); do
 	filename="parser_n$((i + 1)).olisp"
-	echo "\nNegative test: $filename"
+	printf "\nNegative test: $filename\n"
 	./olisp.native "tests/$filename"
 	if [[ $? -ne 0 ]]; then
-		echo "Rejected! Test passed."
+		printf "Rejected! Test passed.\n"
 		((passed++))
 	else
-		echo "Accepted! Test failed."
+		printf "Accepted! Test failed.\n"
 	fi
 done
 
-echo "\n$passed of $((pos_tests + neg_tests)) tests passed!\n"
+printf "\n$passed of $((pos_tests + neg_tests)) tests passed!\n\n"
 
 exit $((pos_tests + neg_tests - passed))
