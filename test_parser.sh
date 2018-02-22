@@ -29,3 +29,5 @@ for (( i = 0; i < neg_tests; i++ )); do
 done
 
 echo "\n$passed of $((pos_tests + neg_tests)) tests passed!\n"
+
+exit $((pos_tests + neg_tests - passed))
