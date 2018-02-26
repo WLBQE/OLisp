@@ -21,11 +21,37 @@
 %%
 
 program:
-    expr_list EOF { List.rev $1 }
+    top_level_list EOF { List.rev $1 }
 
-expr_list:
-    /* nothing */  { [] }
-  | expr_list expr { $2 :: $1 }
+top_level_list:
+    /* nothing */            { [] }
+  | top_level_list top_level { $2 :: $1 }
+
+top_level:
+    LPAREN DEFINE LPAREN typ ID RPAREN expr RPAREN { Bind($4, $5, $7) }
+  | LPAREN CLASS ID mem_list LPAREN CONSTR formal_list RPAREN RPAREN { DeclClass($3, List.rev $4, List.rev $7) }
+  | expr { Expr($1) }
+
+typ:
+    INT    { Int }
+  | DOUBLE { Double }
+  | BOOL   { Bool }
+  | STRING { String }
+  | ID     { Class($1) }
+  | LBRACK typ RBRACK { List($2) }
+  | LPAREN type_list ARROW ret_type RPAREN { Lambda(List.rev $2, $4) }
+
+type_list:
+    VOID          { [] }
+  | var_type_list { List.rev $1 }
+
+var_type_list:
+    typ               { [$1] }
+  | var_type_list typ { $2 :: $1 }
+
+ret_type:
+    typ  { VarType($1) }
+  | VOID { Void }
 
 expr:
     LIT       { Lit($1) }
@@ -38,8 +64,6 @@ expr:
   | LPAREN expr expr_list RPAREN { Call($2, List.rev $3) }
   | LPAREN LIST typ expr_list RPAREN { Lst($3, $4) }
   | LPAREN LAMBDA LPAREN type_list ARROW ret_type RPAREN LPAREN formal_list RPAREN expr RPAREN { LambdaExpr($4, $6, List.rev $9, $11) }
-  | LPAREN DEFINE LPAREN typ ID RPAREN expr RPAREN { DefVar($4, $5, $7) }
-  | LPAREN CLASS ID mem_list LPAREN CONSTR formal_list RPAREN RPAREN { DefClass($3, List.rev $4, List.rev $7) }
 
 built_in:
     PLUS   { Add }
@@ -67,26 +91,9 @@ built_in:
   | BEGIN  { Begin }
   | PRINT  { Print }
 
-type_list:
-    VOID          { [] }
-  | var_type_list { List.rev $1 }
-
-var_type_list:
-    typ               { [$1] }
-  | var_type_list typ { $2 :: $1 }
-
-typ:
-    INT    { Int }
-  | DOUBLE { Double }
-  | BOOL   { Bool }
-  | STRING { String }
-  | ID     { Class($1) }
-  | LBRACK typ RBRACK { List($2) }
-  | LPAREN type_list ARROW ret_type RPAREN { Lambda(List.rev $2, $4) }
-
-ret_type:
-    typ  { VarType($1) }
-  | VOID { Void }
+expr_list:
+    /* nothing */  { [] }
+  | expr_list expr { $2 :: $1 }
 
 formal_list:
     /* nothing */  { [] }

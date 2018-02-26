@@ -2,7 +2,7 @@
   type status = { mutable is_new: bool }
   let s = { is_new = true }
   let check status =
-    if status.is_new then () else raise (Failure("Syntax error"));
+    if status.is_new then () else raise (Failure ("Syntax error"));
     status.is_new <- false
   let reset status = status.is_new <- true }
 
@@ -60,7 +60,7 @@ rule token = parse
   | '-'? digit+ '.' digit+ as lxm { check s; DOUBLELIT(lxm) }
   | '"'           { check s; string_lit (Buffer.create 16) lexbuf }
   | eof           { EOF }
-  | _ as char     { raise (Failure("Unexpected character: " ^ Char.escaped char)) }
+  | _ as char     { raise (Failure ("Unexpected character: " ^ Char.escaped char)) }
 
 and comment = parse
     '\n' { token lexbuf }
@@ -75,5 +75,5 @@ and string_lit buf = parse
   | "\\t"         { Buffer.add_char buf '\t'; string_lit buf lexbuf }
   | "\\\""        { Buffer.add_char buf '\"'; string_lit buf lexbuf }
   | [^ '"' '\\']+  as lxm { Buffer.add_string buf lxm; string_lit buf lexbuf }
-  | _ as char     { raise (Failure("Illegal string character: " ^ Char.escaped char)) }
-  | eof           { raise (Failure("String is not terminated")) }
+  | _ as char     { raise (Failure ("Illegal string character: " ^ Char.escaped char)) }
+  | eof           { raise (Failure ("String is not terminated")) }
