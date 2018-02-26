@@ -2,6 +2,7 @@ type built_in =
     Add | Sub | Mult | Div | Mod
   | Eq | Neq | Lt | Gt | Leq | Geq
   | And | Or | Not
+  | I2f | F2i
   | Lst | Cons | Car | Cdr | Append | Empty
   | If | Begin | Print
 
@@ -56,6 +57,8 @@ let string_of_built_in = function
   | And -> "and"
   | Or -> "or"
   | Not -> "not"
+  | I2f -> "i2f"
+  | F2i -> "f2i"
   | Lst -> "list"
   | Cons -> "cons"
   | Car -> "car"

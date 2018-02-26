@@ -29,6 +29,8 @@ rule token = parse
   | "and"         { check s; AND }
   | "or"          { check s; OR }
   | "not"         { check s; NOT }
+  | "i2f"         { check s; I2F }
+  | "f2i"         { check s; F2I }
   | '='           { check s; EQ }
   | "!="          { check s; NEQ }
   | '<'           { check s; LT }
@@ -52,10 +54,10 @@ rule token = parse
   | "constructor" { check s; CONSTR }
   | "true"        { check s; BOOLLIT(true) }
   | "false"       { check s; BOOLLIT(false) }
-  | digit+ as lxm { check s; LIT(int_of_string lxm) }
+  | '-'? digit+ as lxm { check s; LIT(int_of_string lxm) }
   | letter (letter | digit | '_')* as lxm { check s; ID(lxm) }
   | (letter (letter | digit | '_')* '.')+ letter (letter | digit | '_')* as lxm { check s; MEMID(lxm) }
-  | digit+ '.' digit+ as lxm { check s; DOUBLELIT(lxm) }
+  | '-'? digit+ '.' digit+ as lxm { check s; DOUBLELIT(lxm) }
   | '"'           { check s; string_lit (Buffer.create 16) lexbuf }
   | eof           { EOF }
   | _ as char     { raise (Failure("Unexpected character: " ^ Char.escaped char)) }

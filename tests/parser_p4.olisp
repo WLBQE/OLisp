@@ -1,5 +1,5 @@
 (class trivial
-  (member (int bar) 1)
+  (member (int bar) -1)
   (constructor))
 
 (class circle
