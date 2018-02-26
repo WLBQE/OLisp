@@ -3,7 +3,7 @@ type built_in =
   | Eq | Neq | Lt | Gt | Leq | Geq
   | And | Or | Not
   | I2d | D2i
-  | Lst | Cons | Car | Cdr | Append | Empty
+  | Cons | Car | Cdr | Append | Empty
   | If | Begin | Print
 
 type typ =
@@ -27,6 +27,7 @@ type expr =
   | Id of string
   | MemId of string list * string
   | Call of expr * expr list
+  | Lst of typ * expr list
   | LambdaExpr of typ list * ret_typ * string list * expr
   | DefVar of typ * string * expr
   | DefClass of string * member list * string list
@@ -59,7 +60,6 @@ let string_of_built_in = function
   | Not -> "not"
   | I2d -> "i2d"
   | D2i -> "d2i"
-  | Lst -> "list"
   | Cons -> "cons"
   | Car -> "car"
   | Cdr -> "cdr"
@@ -105,6 +105,8 @@ and string_of_expr = function
   | MemId(cls, mem) -> List.fold_left (fun str cls -> str ^ cls ^ ".") "" cls ^ mem
   | Call(exp, exps) ->
       "(" ^ string_of_expr exp ^ List.fold_left (fun str exp -> str ^ " " ^ string_of_expr exp) "" exps ^ ")"
+  | Lst(typ, exps) ->
+      "(list " ^ string_of_typ typ ^ List.fold_left (fun str exp -> str ^ " " ^ string_of_expr exp) "" exps ^ ")"
   | LambdaExpr(typ_list, ret_typ, formal_list, expr) ->
       "(lambda (" ^ string_of_typ_list typ_list ^ "-> " ^ string_of_ret_typ ret_typ ^ ") ("
         ^ string_of_formal_list formal_list ^ ") " ^ string_of_expr expr ^ ")"

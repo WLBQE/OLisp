@@ -36,6 +36,7 @@ expr:
   | ID        { Id($1) }
   | MEMID     { Ast.split_mem_id $1 }
   | LPAREN expr expr_list RPAREN { Call($2, List.rev $3) }
+  | LPAREN LIST typ expr_list RPAREN { Lst($3, $4) }
   | LPAREN LAMBDA LPAREN type_list ARROW ret_type RPAREN LPAREN formal_list RPAREN expr RPAREN { LambdaExpr($4, $6, List.rev $9, $11) }
   | LPAREN DEFINE LPAREN typ ID RPAREN expr RPAREN { DefVar($4, $5, $7) }
   | LPAREN CLASS ID mem_list LPAREN CONSTR formal_list RPAREN RPAREN { DefClass($3, List.rev $4, List.rev $7) }
@@ -57,7 +58,6 @@ built_in:
   | NOT    { Not }
   | I2D    { I2d }
   | D2I    { D2i }
-  | LIST   { Lst }
   | CONS   { Cons }
   | CAR    { Car }
   | CDR    { Cdr }

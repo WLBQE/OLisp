@@ -11,7 +11,7 @@
 (define (([grade] (grade -> bool) -> [grade]) filter)
   (lambda ([grade] (grade -> bool) -> [grade]) (lst cond)
     (if (empty lst)
-      (list)
+      (list grade)
       (if (cond (car lst))
         (cons (car lst)
           (filter (cdr lst) cond))
@@ -20,9 +20,9 @@
 (define (([grade] -> [grade]) qsort)
   (lambda ([grade] -> [grade]) (lst)
     (if (empty lst)
-      (list)
+      (list grade)
       (append (qsort (filter lst less_than))
-        (list (car lst))
+        (list grade (car lst))
         (qsort (filter lst (lambda (grade -> bool) (elem)
           (not (grade.less_than elem)))))))))
 
@@ -31,4 +31,4 @@
 (define (grade Carol) (grade 3.8 3.67))
 (define (grade Jiaqi) (grade 4.33 4.33))
 
-(define ([grade] sorted) (qsort (list Alice Bob Carol Jiaqi)))
+(define ([grade] sorted) (qsort (list grade Alice Bob Carol Jiaqi)))
