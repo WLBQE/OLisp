@@ -5,7 +5,7 @@
 %token PLUS MINUS TIMES DIVIDE MODULO
 %token EQ NEQ LT GT LEQ GEQ
 %token AND OR NOT
-%token I2F F2I
+%token I2D D2I
 %token LIST CONS CAR CDR APPEND EMPTY
 %token IF BEGIN PRINT
 %token DEFINE LAMBDA ARROW
@@ -55,8 +55,8 @@ built_in:
   | AND    { And }
   | OR     { Or }
   | NOT    { Not }
-  | I2F    { I2f }
-  | F2I    { F2i }
+  | I2D    { I2d }
+  | D2I    { D2i }
   | LIST   { Lst }
   | CONS   { Cons }
   | CAR    { Car }

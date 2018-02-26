@@ -29,8 +29,8 @@ rule token = parse
   | "and"         { check s; AND }
   | "or"          { check s; OR }
   | "not"         { check s; NOT }
-  | "i2f"         { check s; I2F }
-  | "f2i"         { check s; F2I }
+  | "i2d"         { check s; I2D }
+  | "d2i"         { check s; D2I }
   | '='           { check s; EQ }
   | "!="          { check s; NEQ }
   | '<'           { check s; LT }
