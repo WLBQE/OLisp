@@ -15,6 +15,7 @@ and sx =
   | SLambdaExpr of typ list * ret_typ * string list * sexpr
   | SDefVar of typ * string * sexpr
   | SDefClass of string * smember list * string list
+(*   | SExpr of sexpr *)
 and smember =
  	SMemConst of string * typ * sexpr
   | SMemVar of string * typ
