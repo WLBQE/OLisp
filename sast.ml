@@ -37,6 +37,8 @@ let rec string_of_sexpr(t, e) =
   | SMemId(cls, mem) -> List.fold_left (fun str cls -> str ^ cls ^ ".") "" cls ^ mem
   | SCall(exp, exps) ->
       "(" ^ string_of_sexpr exp ^ List.fold_left (fun str exp -> str ^ " " ^ string_of_sexpr exp) "" exps ^ ")"
+  | SLst(typ, exps) ->
+      "(list " ^ string_of_typ typ ^ List.fold_left (fun str exp -> str ^ " " ^ string_of_sexpr exp) "" exps ^ ")"
   | SLambdaExpr(typ_list, ret_typ, formal_list, expr) ->
       "(lambda (" ^ string_of_typ_list typ_list ^ "-> " ^ string_of_ret_typ ret_typ ^ ") ("
       ^ string_of_formal_list formal_list ^ ") " ^ string_of_sexpr expr ^ ")"
