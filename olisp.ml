@@ -13,16 +13,16 @@ let () =
     ("-l", Arg.Unit (set_action LLVM_IR), "Print the generated LLVM IR");
     ("-c", Arg.Unit (set_action Compile),
       "Check and print the generated LLVM IR (default)");
-  ] in  
+  ] in
   let usage_msg = "usage: ./olisp.native [-a|-s|-l|-c] [file.mc]" in
   let channel = ref stdin in
   Arg.parse speclist (fun filename -> channel := open_in filename) usage_msg;
-  
+
   let lexbuf = Lexing.from_channel !channel in
-  let ast = Parser.program Scanner.token lexbuf in  
+  let ast = Parser.program Scanner.token lexbuf in
   match !action with
     Ast -> print_string (Ast.string_of_program ast)
-  | _ -> let sast = Semant.check ast in
+  | _ -> let sast = ast in
     match !action with
       Ast     -> ()
     | Sast    -> print_string (Sast.string_of_sprogram sast)
