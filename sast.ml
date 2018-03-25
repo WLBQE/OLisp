@@ -23,7 +23,7 @@ and smember =
 type sprogram = sexpr list
 
 let rec string_of_smember = function
-	SMemConst(name, tye, sexpr) -> "(smember (" ^ string_of_typ typ ^ " " ^ name ^ ")" ^ string_of_sexpr sexpr ^ ")"
+	SMemConst(name, typ, sexpr) -> "(smember (" ^ string_of_typ typ ^ " " ^ name ^ ")" ^ string_of_sexpr sexpr ^ ")"
   | SMemVar(name, typ) -> "(smember (" ^ string_of_typ typ ^ " " ^ name ^ "))"
 
  and string_of_smember_list = function
@@ -47,6 +47,7 @@ and string_of_sexpr(t, e) =
   | SDefVar(typ, name, expr) -> "(define (" ^ string_of_typ typ ^ " " ^ name ^ ") " ^ string_of_sexpr expr ^ ")"
   | SDefClass(name, members, formals) ->
       "(class " ^ name ^ " " ^ string_of_smember_list members ^ "(constructor " ^ string_of_formal_list formals ^ "))"
+  ) ^ ")"
 
 and string_of_sexpr_list = function
 	[] -> ""
