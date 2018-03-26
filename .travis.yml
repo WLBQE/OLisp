@@ -4,10 +4,10 @@ before_install:
 - brew update
 - brew install ocamlbuild
 - brew install opam
-- opam init -q -y
+- opam init -y
 - eval `opam config env`
 - brew install llvm
-- opam install llvm
+- opam install -y llvm
 
 install:
 - make
