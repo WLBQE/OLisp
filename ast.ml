@@ -118,15 +118,15 @@ let string_of_member = function
   | MemVar(name, typ) -> "(member (" ^ string_of_typ typ ^ " " ^ name ^ "))"
 
 let string_of_top_level = function
-    Bind(typ, name, expr) -> "(define (" ^ string_of_typ typ ^ " " ^ name ^ ") " ^ string_of_expr expr ^ ")"
+    Bind(typ, name, expr) -> "(define (" ^ string_of_typ typ ^ " " ^ name ^ ") " ^ string_of_expr expr ^ ")\n"
   | DeclClass(name, members, formals) ->
       "(class " ^ name ^ " " ^ List.fold_left (fun str mem -> str ^ string_of_member mem ^ " ") "" members
-        ^ "(constructor" ^ List.fold_left (fun str formal -> str ^ " " ^ formal) "" formals ^ "))"
-  | Expr(expr) -> string_of_expr expr
+        ^ "(constructor" ^ List.fold_left (fun str formal -> str ^ " " ^ formal) "" formals ^ "))\n"
+  | Expr(expr) -> string_of_expr expr ^ "\n"
 
 let rec string_of_top_level_list = function
     [] -> ""
   | [top_level] -> string_of_top_level top_level
-  | top_level :: tl -> string_of_top_level top_level ^ " " ^ string_of_top_level_list tl
+  | top_level :: tl -> string_of_top_level top_level ^ string_of_top_level_list tl
 
 let string_of_program program = string_of_top_level_list program

@@ -47,15 +47,15 @@ let rec string_of_smember = function
   | SMemVar(name, typ) -> "(smember (" ^ string_of_typ typ ^ " " ^ name ^ "))"
 
 let string_of_stop_level = function
-    SBind(typ, name, expr) -> "(define (" ^ string_of_typ typ ^ " " ^ name ^ ") " ^ string_of_sexpr expr ^ ")"
+    SBind(typ, name, expr) -> "(define (" ^ string_of_typ typ ^ " " ^ name ^ ") " ^ string_of_sexpr expr ^ ")\n"
   | SDeclClass(name, members, formals) ->
       "(class " ^ name ^ " " ^ List.fold_left (fun str mem -> str ^ string_of_smember mem ^ " ") "" members
-      ^ "(constructor" ^ List.fold_left (fun str formal -> str ^ " " ^ formal) "" formals ^ "))"
-  | SExpr(expr) -> string_of_sexpr expr
+      ^ "(constructor" ^ List.fold_left (fun str formal -> str ^ " " ^ formal) "" formals ^ "))\n"
+  | SExpr(expr) -> string_of_sexpr expr ^ "\n"
 
 let rec string_of_stop_level_list = function
     [] -> ""
   | [top_level] -> string_of_stop_level top_level
-  | top_level :: tl -> string_of_stop_level top_level ^ " " ^ string_of_stop_level_list tl
+  | top_level :: tl -> string_of_stop_level top_level ^ string_of_stop_level_list tl
 
 let string_of_sprogram program = string_of_stop_level_list program

@@ -1,8 +1,6 @@
 open Ast
 open Sast
 
-module StringMap = Map.Make(String)
-
 let check toplevels =
   let rec check_call lamb args = match lamb with
       (VarType(Lambda(_, _)), _) -> raise (Failure "To be implemented: lambda expressions")
