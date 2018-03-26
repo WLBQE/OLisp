@@ -4,7 +4,7 @@ before_install:
 - brew update
 - brew install ocamlbuild
 - brew install opam
-- opam init
+- opam init -q -y
 - eval `opam config env`
 - brew install llvm
 - opam install llvm
@@ -14,6 +14,7 @@ install:
 
 script:
 - ./test_parser.sh
+- ./test_hello.sh
 
 notifications:
   email: false
