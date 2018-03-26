@@ -23,3 +23,6 @@ setup.log
 
 parser.ml
 parser.mli
+
+tests/*.ll
+tests/*.result
