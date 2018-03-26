@@ -1,3 +1,2 @@
 // Hello world test
-(print "Hello ")
-(print "world!\n")
+(print 123)

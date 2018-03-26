@@ -4,7 +4,7 @@ Jiaqi Liu     jl4953@columbia.edu
 Linli Wan     lw2780@columbia.edu
 Zhixuan Zheng zz2486@columbia.edu
 
-Our simple program prints "Hello world!\n" using two print lambda expression calls.
+Our simple program prints an integer 123 using a print lambda expression call.
 
 To build our compiler:
  make
