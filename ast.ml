@@ -89,7 +89,7 @@ and string_of_typ_list = function
 
 and string_of_ret_typ = function
     VarType(typ) -> string_of_typ typ
-  | BuiltIn -> raise (Failure "Syntax error")
+  | BuiltIn -> "builtin"
   | Void -> "void"
 
 let rec string_of_formal_list = function

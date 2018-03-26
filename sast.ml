@@ -1,5 +1,3 @@
-(* Semantically-checked Abstract Syntax Tree and functions for printing it *)
-
 open Ast
 
 type sexpr = ret_typ * sx
@@ -52,7 +50,7 @@ let string_of_stop_level = function
     SBind(typ, name, expr) -> "(define (" ^ string_of_typ typ ^ " " ^ name ^ ") " ^ string_of_sexpr expr ^ ")"
   | SDeclClass(name, members, formals) ->
       "(class " ^ name ^ " " ^ List.fold_left (fun str mem -> str ^ string_of_smember mem ^ " ") "" members
-        ^ "(constructor" ^ List.fold_left (fun str formal -> str ^ " " ^ formal) "" formals ^ "))"
+      ^ "(constructor" ^ List.fold_left (fun str formal -> str ^ " " ^ formal) "" formals ^ "))"
   | SExpr(expr) -> string_of_sexpr expr
 
 let rec string_of_stop_level_list = function

@@ -13,7 +13,7 @@ let check toplevels =
         | [(VarType(Double), exp')] -> [(VarType(Double), exp')]
         | [(VarType(Bool), exp')] -> [(VarType(Bool), exp')]
         | _ -> raise (Failure "To be implemented: print"))
-      ))
+        ))
       | _ -> raise (Failure "To be implemented: built-in lambda"))
     | _ -> raise (Failure "Invalid call: not a lambda")
   and check_expr = function
@@ -31,5 +31,5 @@ let check toplevels =
   let check_toplevel = function
       Bind(typ, name, expr) -> raise (Failure "To be implemented: bindings")
     | DeclClass(name, memlist, constructorlist) -> raise (Failure "To be implemented: class declarations")
-    | Expr(expr) -> check_expr expr
+    | Expr(expr) -> SExpr(check_expr expr)
   in List.map check_toplevel toplevels

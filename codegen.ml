@@ -1,17 +1,3 @@
-(* Code generation: translate takes a semantically checked AST and
-produces LLVM IR
-
-LLVM tutorial: Make sure to read the OCaml version of the tutorial
-
-http://llvm.org/docs/tutorial/index.html
-
-Detailed documentation on the OCaml LLVM library:
-
-http://llvm.moe/
-http://llvm.moe/ocaml/
-
-*)
-
 (* We'll refer to Llvm and Ast constructs with module names *)
 module L = Llvm
 module A = Ast
@@ -33,9 +19,9 @@ let translate (_, functions) =
 
   (* Convert MicroC types to LLVM types *)
   let ltype_of_typ = function
-      A.Int   -> i32_t
-    | A.Void  -> void_t
-    | t -> raise (Failure ("Type " ^ A.string_of_typ t ^ " not implemented yet"))
+      A.VarType(A.Int) -> i32_t
+    | A.Void -> void_t
+    | t -> raise (Failure ("Type " ^ A.string_of_ret_typ t ^ " not implemented yet"))
   in
 
   (* Declare a "printf" function to implement MicroC's "print". *)
