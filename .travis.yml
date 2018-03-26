@@ -3,6 +3,11 @@ os: osx
 before_install:
 - brew update
 - brew install ocamlbuild
+- brew install opam
+- opam init
+- eval `opam config env`
+- brew install llvm
+- opam install llvm
 
 install:
 - make
