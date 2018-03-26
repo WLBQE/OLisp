@@ -10,6 +10,6 @@ To build our compiler:
  make
 
 To run our test suite: 
- ./test_parser.sh
+ ./test_hello.sh
 
 Test results are shown in stdout.
