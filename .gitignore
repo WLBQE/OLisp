@@ -25,4 +25,6 @@ parser.ml
 parser.mli
 
 tests/*.ll
+tests/*.s
+tests/*.exe
 tests/*.result
