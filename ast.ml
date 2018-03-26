@@ -16,6 +16,7 @@ type typ =
   | Class of string
 and ret_typ =
     VarType of typ
+  | BuiltIn of built_in
   | Void
 
 type expr =
@@ -88,6 +89,7 @@ and string_of_typ_list = function
 
 and string_of_ret_typ = function
     VarType(typ) -> string_of_typ typ
+  | BuiltIn(builtin) -> string_of_built_in builtin
   | Void -> "void"
 
 let rec string_of_formal_list = function

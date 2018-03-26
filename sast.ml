@@ -2,7 +2,7 @@
 
 open Ast
 
-type sexpr = typ * sx
+type sexpr = ret_typ * sx
 and sx = 
     SLit of int
   | SDoubleLit of string
@@ -27,8 +27,8 @@ type stoplevel =
 type sprogram = stoplevel list
 
 let rec string_of_sexpr(t, e) = 
-  "(" ^ string_of_typ t ^ " : " ^ (match e with
-  	SLit(lit) -> string_of_int lit
+  "(" ^ string_of_ret_typ t ^ " : " ^ (match e with
+    SLit(lit) -> string_of_int lit
   | SDoubleLit(dlit) -> dlit
   | SBoolLit(blit) -> string_of_bool blit
   | SStringLit(slit) -> "\"" ^ String.escaped slit ^ "\""
