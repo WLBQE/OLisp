@@ -1,7 +1,6 @@
-(* We'll refer to Llvm and Ast constructs with module names *)
 module L = Llvm
 module A = Ast
-open Sast 
+open Sast
 
 module StringMap = Map.Make(String)
 
