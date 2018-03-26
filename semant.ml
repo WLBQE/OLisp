@@ -25,8 +25,7 @@ let check toplevels =
   | Call(lamb, args) -> check_call (check_expr lamb) (List.map check_expr args)
   | Lst(typ, exprs) -> raise (Failure "To be implemented: list constructors")
   | LambdaExpr(typs, ret, formals, exprs) -> raise (Failure "To be implemented: lambda expressions")
-  in
-  let check_toplevel = function
+  in let check_toplevel = function
       Bind(typ, name, expr) -> raise (Failure "To be implemented: bindings")
     | DeclClass(name, memlist, constructorlist) -> raise (Failure "To be implemented: class declarations")
     | Expr(expr) -> SExpr(check_expr expr)
