@@ -12,4 +12,4 @@ To build our compiler:
 To run our test suite: 
  ./test_hello.sh
 
-Test results are shown in stdout.
+Test results are printed to stdout.
