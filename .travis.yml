@@ -9,6 +9,7 @@ before_install:
 - brew install llvm
 - opam install -y llvm
 - sudo ln -s /usr/local/opt/llvm/bin/lli /usr/local/bin/lli
+- sudo ln -s /usr/local/opt/llvm/bin/llc /usr/local/bin/llc
 
 install:
 - make
