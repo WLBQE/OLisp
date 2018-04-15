@@ -9,16 +9,11 @@ let check toplevels =
   in
   let rec check_call lamb args = ((match lamb with
       (VarType(Lambda(types, ret)), _) -> ignore(List.map2 confirm_type types args); ret
-    | (BuiltIn(builtin), _) -> let check_same_type exprs =
-        let rec check_same_type_rest typ rest = match rest with
-            [] -> []
-          | (t1, e1) :: tl when t1 = typ -> check_same_type_rest typ tl
-          | _ -> raise (Failure "expected expressions of the same type")
-        in
-        match exprs with
-            [] -> []
-          | [(t1, e1)] -> [(t1, e1)]
-          | (t1, e1) :: tl -> (t1, e1) :: check_same_type_rest t1 tl
+    | (BuiltIn(builtin), _) -> let check_same_type exprs = match exprs with
+        [] -> []
+      | expr :: _ -> let match_ret_type (r1, _) (r2, e2) =
+        if r1 = r2 then (r2, e2) else raise (Failure "error: expressions of the same type expected") in
+        List.map (match_ret_type expr) exprs
       in
       (match builtin with
         Add | Mult -> (match check_same_type args with
@@ -76,7 +71,7 @@ let check toplevels =
           [(VarType(String), _)] | [(VarType(Int), _)] | [(VarType(Double), _)] | [(VarType(Bool), _)] -> Void
         | _ -> raise (Failure "print: invalid argument")))
     | _ -> raise (Failure "invalid call: not a lambda")), SCall(lamb, args))
-  and check_expr sym cls expr = match expr with
+  and check_expr sym cls = function
     Lit(l) -> (VarType(Int), SLit(l))
   | DoubleLit(l) -> (VarType(Double), SDoubleLit(l))
   | BoolLit(l) -> (VarType(Bool), SBoolLit(l))
@@ -89,7 +84,7 @@ let check toplevels =
       ignore (List.map (confirm_type typ) exprs'); (VarType(List(typ)), SLst(typ, exprs'))
   | LambdaExpr(typs, ret, formals, exprs) -> raise (Failure "to be implemented: lambda expressions")
   in
-  let check_toplevel (sym, cls, checked) toplevel = match toplevel with
+  let check_toplevel (sym, cls, checked) = function
       Bind(typ, name, expr) -> if StringMap.mem name sym
       then raise (Failure ("name " ^ name ^ " is already bound"))
       else (match typ with
