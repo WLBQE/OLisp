@@ -14,3 +14,6 @@
 (+ 1.0 2.3 5.5)
 
 (% 8 (+ 4 5))
+
+(car (list int 1 2 3))
+(cdr (list double 2.5))

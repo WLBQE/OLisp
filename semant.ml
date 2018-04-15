@@ -2,23 +2,23 @@ open Ast
 open Sast
 
 let check toplevels =
-  let check_same_type exprs =
-    let rec check_same_type_rest typ rest = match rest with
-        [] -> []
-      | (t1, e1) :: tl when t1 = typ -> check_same_type_rest typ tl
-      | _ -> raise (Failure "expected expressions of the same type")
-    in
-    match exprs with
-        [] -> []
-      | [(t1, e1)] -> [(t1, e1)]
-      | (t1, e1) :: tl -> (t1, e1) :: check_same_type_rest t1 tl
-  in
-  let compare_type typ (ret, _) =
+  let confirm_type typ (ret, _) =
     if ret = VarType(typ) then typ else raise (Failure "error: types do not match")
   in
   let rec check_call lamb args = ((match lamb with
-      (VarType(Lambda(types, ret)), _) -> ignore(List.map2 compare_type types args); ret
-    | (BuiltIn(builtin), _) -> (match builtin with
+      (VarType(Lambda(types, ret)), _) -> ignore(List.map2 confirm_type types args); ret
+    | (BuiltIn(builtin), _) -> let check_same_type exprs =
+        let rec check_same_type_rest typ rest = match rest with
+            [] -> []
+          | (t1, e1) :: tl when t1 = typ -> check_same_type_rest typ tl
+          | _ -> raise (Failure "expected expressions of the same type")
+        in
+        match exprs with
+            [] -> []
+          | [(t1, e1)] -> [(t1, e1)]
+          | (t1, e1) :: tl -> (t1, e1) :: check_same_type_rest t1 tl
+      in
+      (match builtin with
         Add | Mult -> (match check_same_type args with
           (VarType(Int), _) :: _ when List.length args > 1 -> VarType(Int)
         | (VarType(Double), _) :: _ when List.length args > 1 -> VarType(Double)
@@ -80,15 +80,16 @@ let check toplevels =
   | BoolLit(l) -> (VarType(Bool), SBoolLit(l))
   | StringLit(l) -> (VarType(String), SStringLit(l))
   | BuiltIn(builtin) -> (BuiltIn(builtin), SBuiltIn(builtin))
-  | Id(name) -> raise (Failure "To be implemented: identifiers")
-  | MemId(names, name) -> raise (Failure "To be implemented: combined identifiers")
+  | Id(name) -> raise (Failure "to be implemented: identifiers")
+  | MemId(names, name) -> raise (Failure "to be implemented: combined identifiers")
   | Call(lamb, args) -> check_call (check_expr lamb) (List.map check_expr args)
-  | Lst(typ, exprs) -> raise (Failure "To be implemented: list constructors")
-  | LambdaExpr(typs, ret, formals, exprs) -> raise (Failure "To be implemented: lambda expressions")
+  | Lst(typ, exprs) -> let exprs' = List.map check_expr exprs in
+      ignore (List.map (confirm_type typ) exprs'); (VarType(List(typ)), SLst(typ, exprs'))
+  | LambdaExpr(typs, ret, formals, exprs) -> raise (Failure "to be implemented: lambda expressions")
   in
   let check_toplevel = function
-      Bind(typ, name, expr) -> raise (Failure "To be implemented: bindings")
-    | DeclClass(name, memlist, constructorlist) -> raise (Failure "To be implemented: class declarations")
+      Bind(typ, name, expr) -> raise (Failure "to be implemented: bindings")
+    | DeclClass(name, memlist, constructorlist) -> raise (Failure "to be implemented: class declarations")
     | Expr(expr) -> SExpr(check_expr expr)
   in
   List.map check_toplevel toplevels
