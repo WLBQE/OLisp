@@ -2,24 +2,81 @@ open Ast
 open Sast
 
 let check toplevels =
-  let rec check_call lamb args = match lamb with
+  let rec check_call lamb args =
+    let check_same_type exprs =
+      let rec check_same_type_rest typ rest = match rest with
+          [] -> []
+        | (t1, e1) :: tl when t1 = typ -> check_same_type_rest typ tl
+        | _ -> raise (Failure "expected expressions of the same type")
+      in match exprs with
+          [(t1, e1)] -> [(t1, e1)]
+        | (t1, e1) :: tl -> (t1, e1) :: check_same_type_rest t1 tl
+        | _ -> raise (Failure "expressions expected") 
+    in match lamb with
       (VarType(Lambda(_, _)), _) -> raise (Failure "To be implemented: lambda expressions")
-    | (BuiltIn, SBuiltIn(builtin)) -> (match builtin with
-        Print -> (Void, SCall((BuiltIn, SBuiltIn(Print)), (match args with
-          [(VarType(String), exp')] -> [(VarType(String), exp')]
-        | [(VarType(Int), exp')] -> [(VarType(Int), exp')]
-        | [(VarType(Double), exp')] -> [(VarType(Double), exp')]
-        | [(VarType(Bool), exp')] -> [(VarType(Bool), exp')]
-        | _ -> raise (Failure "To be implemented: print"))
-        ))
-      | _ -> raise (Failure "To be implemented: built-in lambda"))
-    | _ -> raise (Failure "Invalid call: not a lambda")
+    | (BuiltIn(builtin), _) -> ((match builtin with
+        Add | Mult -> (match check_same_type args with
+          (VarType(Int), _) :: _ when List.length args > 1 -> VarType(Int)
+        | (VarType(Double), _) :: _ when List.length args > 1 -> VarType(Double)
+        | _ -> raise (Failure (string_of_built_in builtin ^ ": invalid arguments")))
+      | Sub | Div -> (match args with
+          [(VarType(Int), _); (VarType(Int), _)] -> VarType(Int)
+        | [(VarType(Double), _); (VarType(Double), _)] -> VarType(Double)
+        | _ -> raise (Failure (string_of_built_in builtin ^ ": invalid arguments")))
+      | Mod -> (match args with
+          [(VarType(Int), _); (VarType(Int), _)] -> VarType(Int)
+        | _ -> raise (Failure "mod: invalid arguments"))
+      | Eq | Neq -> (match args with
+          [(VarType(Int), _); (VarType(Int), _)] | [(VarType(Double), _); (VarType(Double), _)]
+        | [(VarType(Bool), _); (VarType(Bool), _)] | [(VarType(String), _); (VarType(String), _)] -> VarType(Bool)
+        | _ -> raise (Failure (string_of_built_in builtin ^ ": invalid arguments")))
+      | Lt | Gt | Leq | Geq -> (match args with
+          [(VarType(Int), _); (VarType(Int), _)] | [(VarType(Double), _); (VarType(Double), _)] -> VarType(Bool)
+        | _ -> raise (Failure (string_of_built_in builtin ^ ": invalid arguments")))
+      | And | Or -> (match check_same_type args with
+          (VarType(Bool), _) :: _ when List.length args > 1 -> VarType(Bool)
+        | _ -> raise (Failure (string_of_built_in builtin ^ ": invalid arguments")))
+      | Not -> (match args with
+          [(VarType(Bool), _)] -> VarType(Bool)
+        | _ -> raise (Failure "not: invalid argument"))
+      | I2d -> (match args with
+          [(VarType(Int), _)] -> VarType(Double)
+        | _ -> raise (Failure "i2d: invalid argument"))
+      | D2i -> (match args with
+          [(VarType(Double), _)] -> VarType(Int)
+        | _ -> raise (Failure "d2i: invalid argument"))
+      | Cons -> (match args with
+          [(VarType(t1), _); (VarType(List(t2)), _)] when t1 = t2 -> VarType(List(t1))
+        | _ -> raise (Failure "cons: invalid arguments"))
+      | Car -> (match args with
+          [(VarType(List(t)), _)] -> VarType(t)
+        | _ -> raise (Failure "car: invalid argument"))
+      | Cdr -> (match args with
+          [(VarType(List(t)), _)] -> VarType(List(t))
+        | _ -> raise (Failure "cdr: invalid argument"))
+      | Append -> (match args with
+          [(VarType(List(t1)), _); (VarType(List(t2)), _)] when t1 = t2 -> VarType(List(t1))
+        | _ -> raise (Failure "append: invalid arguments"))
+      | Empty -> (match args with
+          [(VarType(List(_)), _)] -> VarType(Bool)
+        | _ -> raise (Failure "empty: invalid argument"))
+      | If -> (match args with
+          [(VarType(Bool), _); (t1, _); (t2, _)] when t1 = t2 -> t1
+        | _ -> raise (Failure "if: invalid arguments"))
+      | Begin -> (match List.rev args with
+          (t1, _) :: _ -> t1
+        | _ -> raise (Failure "begin: expressions expected"))
+      | Print -> (match args with
+          [(VarType(String), _)] | [(VarType(Int), _)] | [(VarType(Double), _)] | [(VarType(Bool), _)] -> Void
+        | _ -> raise (Failure "print: invalid argument"))),
+      SCall(lamb, args))
+    | _ -> raise (Failure "invalid call: not a lambda")
   and check_expr = function
     Lit(l) -> (VarType(Int), SLit(l))
   | DoubleLit(l) -> (VarType(Double), SDoubleLit(l))
   | BoolLit(l) -> (VarType(Bool), SBoolLit(l))
   | StringLit(l) -> (VarType(String), SStringLit(l))
-  | BuiltIn(builtin) -> (BuiltIn, SBuiltIn(builtin))
+  | BuiltIn(builtin) -> (BuiltIn(builtin), SBuiltIn(builtin))
   | Id(name) -> raise (Failure "To be implemented: identifiers")
   | MemId(names, name) -> raise (Failure "To be implemented: combined identifiers")
   | Call(lamb, args) -> check_call (check_expr lamb) (List.map check_expr args)

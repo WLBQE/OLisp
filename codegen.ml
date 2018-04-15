@@ -21,7 +21,7 @@ let translate stoplevels =
     let int_format_str = L.build_global_stringptr "%d\n" "i_fmt" builder in
     let rec expr builder ((_, e) : sexpr) = match e with
         SLit(i) -> L.const_int i32_t i
-      | SCall((BuiltIn, SBuiltIn(Print)), [exp]) -> L.build_call printf_func [| int_format_str ; (expr builder exp) |] "printf" builder
+      | SCall((BuiltIn(Print), SBuiltIn(Print)), [exp]) -> L.build_call printf_func [| int_format_str ; (expr builder exp) |] "printf" builder
       | _ -> raise (Failure "To be implemented")
     in
     let rec toplevel builder = function
