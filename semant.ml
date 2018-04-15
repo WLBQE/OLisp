@@ -82,7 +82,7 @@ let check toplevels =
   | BoolLit(l) -> (VarType(Bool), SBoolLit(l))
   | StringLit(l) -> (VarType(String), SStringLit(l))
   | BuiltIn(builtin) -> (BuiltIn(builtin), SBuiltIn(builtin))
-  | Id(name) -> raise (Failure "to be implemented: identifiers")
+  | Id(name) -> (VarType(StringMap.find name sym), SId(name))
   | MemId(names, name) -> raise (Failure "to be implemented: combined identifiers")
   | Call(lamb, args) -> check_call (check_expr sym cls lamb) (List.map (check_expr sym cls) args)
   | Lst(typ, exprs) -> let exprs' = List.map (check_expr sym cls) exprs in
