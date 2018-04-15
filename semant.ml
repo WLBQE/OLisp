@@ -1,6 +1,8 @@
 open Ast
 open Sast
 
+module StringMap = Map.Make(String)
+
 let check toplevels =
   let confirm_type typ (ret, _) =
     if ret = VarType(typ) then typ else raise (Failure "error: types do not match")
@@ -87,9 +89,9 @@ let check toplevels =
       ignore (List.map (confirm_type typ) exprs'); (VarType(List(typ)), SLst(typ, exprs'))
   | LambdaExpr(typs, ret, formals, exprs) -> raise (Failure "to be implemented: lambda expressions")
   in
-  let check_toplevel = function
+  let check_toplevel (sym, checked) toplevel = match toplevel with
       Bind(typ, name, expr) -> raise (Failure "to be implemented: bindings")
     | DeclClass(name, memlist, constructorlist) -> raise (Failure "to be implemented: class declarations")
-    | Expr(expr) -> SExpr(check_expr expr)
+    | Expr(expr) -> (sym, SExpr(check_expr expr) :: checked)
   in
-  List.map check_toplevel toplevels
+  List.fold_left check_toplevel (StringMap.empty, []) toplevels

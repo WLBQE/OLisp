@@ -17,7 +17,7 @@ let () =
   let ast = Parser.program Scanner.token lexbuf in
   match !action with
     Ast -> print_string (Ast.string_of_program ast)
-  | Sast -> print_string (Sast.string_of_sprogram (Semant.check ast))
+  | Sast -> let (_, sast) = Semant.check ast in print_string (Sast.string_of_sprogram sast)
   | LLVM_IR -> print_string (Llvm.string_of_llmodule (Codegen.translate (Semant.check ast)))
   | Compile -> let m = Codegen.translate (Semant.check ast)
       in Llvm_analysis.assert_valid_module m; print_string (Llvm.string_of_llmodule m)
