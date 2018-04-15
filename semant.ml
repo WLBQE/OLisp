@@ -76,7 +76,7 @@ let check toplevels =
           [(VarType(String), _)] | [(VarType(Int), _)] | [(VarType(Double), _)] | [(VarType(Bool), _)] -> Void
         | _ -> raise (Failure "print: invalid argument")))
     | _ -> raise (Failure "invalid call: not a lambda")), SCall(lamb, args))
-  and check_expr sym expr = match expr with
+  and check_expr sym cls expr = match expr with
     Lit(l) -> (VarType(Int), SLit(l))
   | DoubleLit(l) -> (VarType(Double), SDoubleLit(l))
   | BoolLit(l) -> (VarType(Bool), SBoolLit(l))
@@ -84,21 +84,21 @@ let check toplevels =
   | BuiltIn(builtin) -> (BuiltIn(builtin), SBuiltIn(builtin))
   | Id(name) -> raise (Failure "to be implemented: identifiers")
   | MemId(names, name) -> raise (Failure "to be implemented: combined identifiers")
-  | Call(lamb, args) -> check_call (check_expr sym lamb) (List.map (check_expr sym) args)
-  | Lst(typ, exprs) -> let exprs' = List.map (check_expr sym) exprs in
+  | Call(lamb, args) -> check_call (check_expr sym cls lamb) (List.map (check_expr sym cls) args)
+  | Lst(typ, exprs) -> let exprs' = List.map (check_expr sym cls) exprs in
       ignore (List.map (confirm_type typ) exprs'); (VarType(List(typ)), SLst(typ, exprs'))
   | LambdaExpr(typs, ret, formals, exprs) -> raise (Failure "to be implemented: lambda expressions")
   in
-  let check_toplevel (sym, checked) toplevel = match toplevel with
+  let check_toplevel (sym, cls, checked) toplevel = match toplevel with
       Bind(typ, name, expr) -> if StringMap.mem name sym
       then raise (Failure ("name " ^ name ^ " is already bound"))
       else (match typ with
-          Lambda(_, _) -> let sym' = StringMap.add name typ sym in (sym',
-            let expr' = check_expr sym' expr in SBind(confirm_type typ expr', name, expr') :: checked)
-        | _ -> (StringMap.add name typ sym,
-          let expr' = check_expr sym expr in SBind(confirm_type typ expr', name, expr') :: checked))
+          Lambda(_, _) -> let sym' = StringMap.add name typ sym in (sym', cls,
+            let expr' = check_expr sym' cls expr in SBind(confirm_type typ expr', name, expr') :: checked)
+        | _ -> (StringMap.add name typ sym, cls,
+          let expr' = check_expr sym cls expr in SBind(confirm_type typ expr', name, expr') :: checked))
     | DeclClass(name, memlist, constructorlist) -> raise (Failure "to be implemented: class declarations")
-    | Expr(expr) -> (sym, SExpr(check_expr sym expr) :: checked)
+    | Expr(expr) -> (sym, cls, SExpr(check_expr sym cls expr) :: checked)
   in
-  let (sym, checked) = List.fold_left check_toplevel (StringMap.empty, []) toplevels in
-  (sym, List.rev checked)
+  let (sym, cls, checked) = List.fold_left check_toplevel (StringMap.empty, StringMap.empty, []) toplevels in
+  (sym, cls, List.rev checked)

@@ -4,7 +4,7 @@ open Sast
 
 module StringMap = Map.Make(String)
 
-let translate (sym, stoplevels) =
+let translate (sym, cls, stoplevels) =
   let context  = L.global_context () in
   let i32_t = L.i32_type context
   and i8_t = L.i8_type context
