@@ -1,6 +1,7 @@
 os: osx
 
 before_install:
+- brew uninstall python
 - brew update
 - brew upgrade
 - brew install ocamlbuild
