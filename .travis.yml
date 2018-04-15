@@ -1,13 +1,15 @@
 os: osx
 
 before_install:
-- brew unlink python
+- brew unlink python # required, otherwise opam cannot be installed properly
 - brew update
 - brew upgrade
 - brew install ocamlbuild
 - brew install opam
 - opam init -y
 - eval `opam config env`
+- opam update -y
+- opam upgrade -y
 - brew install llvm
 - opam install -y llvm
 - sudo ln -s /usr/local/opt/llvm/bin/lli /usr/local/bin/lli
