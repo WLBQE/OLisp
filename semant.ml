@@ -2,19 +2,23 @@ open Ast
 open Sast
 
 let check toplevels =
-  let rec check_call lamb args =
-    let check_same_type exprs =
-      let rec check_same_type_rest typ rest = match rest with
-          [] -> []
-        | (t1, e1) :: tl when t1 = typ -> check_same_type_rest typ tl
-        | _ -> raise (Failure "expected expressions of the same type")
-      in match exprs with
-          [(t1, e1)] -> [(t1, e1)]
-        | (t1, e1) :: tl -> (t1, e1) :: check_same_type_rest t1 tl
-        | _ -> raise (Failure "expressions expected") 
-    in match lamb with
-      (VarType(Lambda(_, _)), _) -> raise (Failure "To be implemented: lambda expressions")
-    | (BuiltIn(builtin), _) -> ((match builtin with
+  let check_same_type exprs =
+    let rec check_same_type_rest typ rest = match rest with
+        [] -> []
+      | (t1, e1) :: tl when t1 = typ -> check_same_type_rest typ tl
+      | _ -> raise (Failure "expected expressions of the same type")
+    in
+    match exprs with
+        [] -> []
+      | [(t1, e1)] -> [(t1, e1)]
+      | (t1, e1) :: tl -> (t1, e1) :: check_same_type_rest t1 tl
+  in
+  let compare_type typ (ret, _) =
+    if ret = VarType(typ) then typ else raise (Failure "error: types do not match")
+  in
+  let rec check_call lamb args = ((match lamb with
+      (VarType(Lambda(types, ret)), _) -> ignore(List.map2 compare_type types args); ret
+    | (BuiltIn(builtin), _) -> (match builtin with
         Add | Mult -> (match check_same_type args with
           (VarType(Int), _) :: _ when List.length args > 1 -> VarType(Int)
         | (VarType(Double), _) :: _ when List.length args > 1 -> VarType(Double)
@@ -68,9 +72,8 @@ let check toplevels =
         | _ -> raise (Failure "begin: expressions expected"))
       | Print -> (match args with
           [(VarType(String), _)] | [(VarType(Int), _)] | [(VarType(Double), _)] | [(VarType(Bool), _)] -> Void
-        | _ -> raise (Failure "print: invalid argument"))),
-      SCall(lamb, args))
-    | _ -> raise (Failure "invalid call: not a lambda")
+        | _ -> raise (Failure "print: invalid argument")))
+    | _ -> raise (Failure "invalid call: not a lambda")), SCall(lamb, args))
   and check_expr = function
     Lit(l) -> (VarType(Int), SLit(l))
   | DoubleLit(l) -> (VarType(Double), SDoubleLit(l))
@@ -82,8 +85,10 @@ let check toplevels =
   | Call(lamb, args) -> check_call (check_expr lamb) (List.map check_expr args)
   | Lst(typ, exprs) -> raise (Failure "To be implemented: list constructors")
   | LambdaExpr(typs, ret, formals, exprs) -> raise (Failure "To be implemented: lambda expressions")
-  in let check_toplevel = function
+  in
+  let check_toplevel = function
       Bind(typ, name, expr) -> raise (Failure "To be implemented: bindings")
     | DeclClass(name, memlist, constructorlist) -> raise (Failure "To be implemented: class declarations")
     | Expr(expr) -> SExpr(check_expr expr)
-  in List.map check_toplevel toplevels
+  in
+  List.map check_toplevel toplevels
