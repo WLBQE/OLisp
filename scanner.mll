@@ -2,7 +2,7 @@
   type status = { mutable is_new: bool }
   let s = { is_new = true }
   let check status =
-    if status.is_new then () else raise (Failure ("Syntax error"));
+    if status.is_new then () else raise (Failure "Syntax error");
     status.is_new <- false
   let reset status = status.is_new <- true }
 
@@ -52,12 +52,12 @@ rule token = parse
   | "class"       { check s; CLASS }
   | "member"      { check s; MEMBER }
   | "constructor" { check s; CONSTR }
-  | "true"        { check s; BOOLLIT(true) }
-  | "false"       { check s; BOOLLIT(false) }
-  | '-'? digit+ as lxm { check s; LIT(int_of_string lxm) }
-  | letter (letter | digit | '_')* as lxm { check s; ID(lxm) }
-  | (letter (letter | digit | '_')* '.')+ letter (letter | digit | '_')* as lxm { check s; MEMID(lxm) }
-  | '-'? digit+ '.' digit+ as lxm { check s; DOUBLELIT(lxm) }
+  | "true"        { check s; BOOLLIT true }
+  | "false"       { check s; BOOLLIT false }
+  | '-'? digit+ as lxm { check s; LIT (int_of_string lxm) }
+  | letter (letter | digit | '_')* as lxm { check s; ID lxm }
+  | (letter (letter | digit | '_')* '.')+ letter (letter | digit | '_')* as lxm { check s; MEMID lxm }
+  | '-'? digit+ '.' digit+ as lxm { check s; DOUBLELIT lxm }
   | '"'           { check s; string_lit (Buffer.create 16) lexbuf }
   | eof           { EOF }
   | _ as char     { raise (Failure ("Unexpected character: " ^ Char.escaped char)) }
@@ -68,7 +68,7 @@ and comment = parse
   | eof	 { EOF }
 
 and string_lit buf = parse
-    '"'           { STRINGLIT(Buffer.contents buf) }
+    '"'           { STRINGLIT (Buffer.contents buf) }
   | "\\\\"        { Buffer.add_char buf '\\'; string_lit buf lexbuf }
   | "\\n"         { Buffer.add_char buf '\n'; string_lit buf lexbuf }
   | "\\r"         { Buffer.add_char buf '\r'; string_lit buf lexbuf }
@@ -76,4 +76,4 @@ and string_lit buf = parse
   | "\\\""        { Buffer.add_char buf '\"'; string_lit buf lexbuf }
   | [^ '"' '\\']+  as lxm { Buffer.add_string buf lxm; string_lit buf lexbuf }
   | _ as char     { raise (Failure ("Illegal string character: " ^ Char.escaped char)) }
-  | eof           { raise (Failure ("String is not terminated")) }
+  | eof           { raise (Failure "String is not terminated") }

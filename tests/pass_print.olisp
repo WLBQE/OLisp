@@ -21,3 +21,7 @@
 
 (car (list int 1 2 3))
 (cdr (list double 2.5))
+
+(define ((double -> int) foo) (lambda (double -> int) (n) (d2i (+ n 1.22))))
+(foo 1.2)
+foo
