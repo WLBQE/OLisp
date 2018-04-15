@@ -1,7 +1,7 @@
 os: osx
 
 before_install:
-- brew uninstall --ignore-dependencies python
+- brew unlink python
 - brew update
 - brew upgrade
 - brew install ocamlbuild
