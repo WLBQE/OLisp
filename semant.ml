@@ -94,4 +94,5 @@ let check toplevels =
     | DeclClass(name, memlist, constructorlist) -> raise (Failure "to be implemented: class declarations")
     | Expr(expr) -> (sym, SExpr(check_expr expr) :: checked)
   in
-  List.fold_left check_toplevel (StringMap.empty, []) toplevels
+  let (sym, checked) = List.fold_left check_toplevel (StringMap.empty, []) toplevels in
+  (sym, List.rev checked)
