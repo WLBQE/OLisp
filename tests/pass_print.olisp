@@ -44,3 +44,4 @@ foo
 
 (define (circle c) (circle 2.5 "blue"))
 (print circle.foo.bar)
+(print circle.foo.blaz.a)

@@ -14,7 +14,7 @@ and sret_typ =
   | SVoid
 
 type sexpr = sret_typ * sx
-and sx = 
+and sx =
     SLit of int
   | SDoubleLit of string
   | SBoolLit of bool
