@@ -1,6 +1,19 @@
 open Ast
 
-type sexpr = ret_typ * sx
+type styp =
+    SInt
+  | SDouble
+  | SBool
+  | SString
+  | SList of styp
+  | SLambda of styp list * sret_typ
+  | SClass of string
+and sret_typ =
+    SVarType of styp
+  | SBuiltInTyp of built_in
+  | SVoid
+
+type sexpr = sret_typ * sx
 and sx = 
     SLit of int
   | SDoubleLit of string
@@ -10,22 +23,38 @@ and sx =
   | SId of string
   | SMemId of string list * string
   | SCall of sexpr * sexpr list
-  | SLst of typ * sexpr list
-  | SLambdaExpr of typ list * ret_typ * string list * sexpr
+  | SLst of styp * sexpr list
+  | SLambdaExpr of styp list * sret_typ * string list * sexpr
 
 type smember =
- 	  SMemConst of string * typ * sexpr
-  | SMemVar of string * typ
+ 	  SMemConst of string * styp * sexpr
+  | SMemVar of string * styp
 
 type stoplevel =
-    SBind of typ * string * sexpr
+    SBind of styp * string * sexpr
   | SDeclClass of string * smember list * string list
   | SExpr of sexpr
 
 type sprogram = stoplevel list
 
+let rec string_of_styp = function
+    SInt -> "int"
+  | SDouble -> "double"
+  | SBool -> "bool"
+  | SString -> "string"
+  | SList typ -> "[" ^ string_of_styp typ ^ "]"
+  | SLambda (typ_list, ret_typ) -> "(" ^ string_of_styp_list typ_list ^ "-> " ^ string_of_sret_typ ret_typ ^ ")"
+  | SClass name -> name
+and string_of_styp_list = function
+    [] -> "void "
+  | lst -> List.fold_left (fun str typ -> str ^ string_of_styp typ ^ " ") "" lst
+and string_of_sret_typ = function
+    SVarType typ -> string_of_styp typ
+  | SBuiltInTyp builtin -> "builtin " ^ string_of_built_in(builtin)
+  | SVoid -> "void"
+
 let rec string_of_sexpr (t, e) = 
-  "(" ^ string_of_ret_typ t ^ " : " ^ (match e with
+  "(" ^ string_of_sret_typ t ^ " : " ^ (match e with
     SLit lit -> string_of_int lit
   | SDoubleLit dlit -> dlit
   | SBoolLit blit -> string_of_bool blit
@@ -36,18 +65,18 @@ let rec string_of_sexpr (t, e) =
   | SCall (exp, exps) ->
       "(" ^ string_of_sexpr exp ^ List.fold_left (fun str exp -> str ^ " " ^ string_of_sexpr exp) "" exps ^ ")"
   | SLst (typ, exps) ->
-      "(list " ^ string_of_typ typ ^ List.fold_left (fun str exp -> str ^ " " ^ string_of_sexpr exp) "" exps ^ ")"
+      "(list " ^ string_of_styp typ ^ List.fold_left (fun str exp -> str ^ " " ^ string_of_sexpr exp) "" exps ^ ")"
   | SLambdaExpr (typ_list, ret_typ, formal_list, expr) ->
-      "(lambda (" ^ string_of_typ_list typ_list ^ "-> " ^ string_of_ret_typ ret_typ ^ ") ("
+      "(lambda (" ^ string_of_styp_list typ_list ^ "-> " ^ string_of_sret_typ ret_typ ^ ") ("
       ^ string_of_formal_list formal_list ^ ") " ^ string_of_sexpr expr ^ ")"
   ) ^ ")"
 
 let rec string_of_smember = function
-    SMemConst (name, typ, sexpr) -> "(smember (" ^ string_of_typ typ ^ " " ^ name ^ ")" ^ string_of_sexpr sexpr ^ ")"
-  | SMemVar (name, typ) -> "(smember (" ^ string_of_typ typ ^ " " ^ name ^ "))"
+    SMemConst (name, typ, sexpr) -> "(member (" ^ string_of_styp typ ^ " " ^ name ^ ") " ^ string_of_sexpr sexpr ^ ")"
+  | SMemVar (name, typ) -> "(member (" ^ string_of_styp typ ^ " " ^ name ^ "))"
 
 let string_of_stop_level = function
-    SBind (typ, name, expr) -> "(define (" ^ string_of_typ typ ^ " " ^ name ^ ") " ^ string_of_sexpr expr ^ ")\n"
+    SBind (typ, name, expr) -> "(define (" ^ string_of_styp typ ^ " " ^ name ^ ") " ^ string_of_sexpr expr ^ ")\n"
   | SDeclClass (name, members, formals) ->
       "(class " ^ name ^ " " ^ List.fold_left (fun str mem -> str ^ string_of_smember mem ^ " ") "" members
       ^ "(constructor" ^ List.fold_left (fun str formal -> str ^ " " ^ formal) "" formals ^ "))\n"

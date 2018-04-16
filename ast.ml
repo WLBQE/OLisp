@@ -16,7 +16,7 @@ type typ =
   | Class of string
 and ret_typ =
     VarType of typ
-  | BuiltIn of built_in
+  | BuiltInTyp of built_in
   | Void
 
 type expr =
@@ -82,14 +82,12 @@ let rec string_of_typ = function
   | List typ -> "[" ^ string_of_typ typ ^ "]"
   | Lambda (typ_list, ret_typ) -> "(" ^ string_of_typ_list typ_list ^ "-> " ^ string_of_ret_typ ret_typ ^ ")"
   | Class name -> name
-
 and string_of_typ_list = function
     [] -> "void "
   | lst -> List.fold_left (fun str typ -> str ^ string_of_typ typ ^ " ") "" lst
-
 and string_of_ret_typ = function
     VarType typ -> string_of_typ typ
-  | BuiltIn builtin -> "builtin " ^ string_of_built_in(builtin)
+  | BuiltInTyp builtin -> "builtin " ^ string_of_built_in(builtin)
   | Void -> "void"
 
 let rec string_of_formal_list = function
