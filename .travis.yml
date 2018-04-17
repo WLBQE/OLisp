@@ -12,8 +12,7 @@ before_install:
 - opam upgrade -y
 - brew install llvm
 - opam install -y llvm
-- sudo ln -s /usr/local/opt/llvm/bin/lli /usr/local/bin/lli
-- sudo ln -s /usr/local/opt/llvm/bin/llc /usr/local/bin/llc
+- echo 'export PATH="/usr/local/opt/llvm/bin:$PATH"' >> ~/.bash_profile
 
 install:
 - make

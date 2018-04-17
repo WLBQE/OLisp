@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CC="cc"
+CC="clang"
 LLC="llc"
 
 ./olisp.native tests/hello_world.olisp > tests/hello_world.ll
