@@ -13,6 +13,7 @@ tests=(
 
 fails=(
 	fail_add
+	fail_call
 	fail_define
 )
 
