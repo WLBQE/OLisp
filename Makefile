@@ -3,4 +3,4 @@ olisp.native: ast.ml scanner.mll parser.mly sast.ml semant.ml codegen.ml olisp.m
 
 .PHONY: clean
 clean:
-	rm -rf _build/ olisp.native
+	rm -rf _build/ *.native *.byte

@@ -16,7 +16,7 @@ install:
 
 script:
 - ./test_parser.sh
-- ./test_hello.sh
+- ./test_all.sh
 
 notifications:
   email: false
