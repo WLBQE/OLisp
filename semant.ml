@@ -136,8 +136,7 @@ let check toplevels =
             in
             get_combined_cls_name class_name tl
           | id :: tl -> get_combined_cls_name
-            (match (try type_of_id id syms with Not_found ->
-              raise (Failure ("undeclared identifier: " ^ id))) with
+            (match type_of_id id syms with
                 SClass name -> name
               | _ -> raise (Failure (id ^ " is not a class"))) tl
           | _ -> raise (Failure "internal error"))
