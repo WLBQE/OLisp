@@ -5,9 +5,9 @@ before_install:
 - brew remove --force --ignore-dependencies $(brew list)
 - brew update
 - brew install cmake git llvm opam pkg-config
-- opam init -y
+- opam init -yq
 - eval `opam config env`
-- opam install -y llvm
+- opam install -yq llvm
 - echo 'export PATH="/usr/local/opt/llvm/bin:$PATH"' >> ~/.bash_profile
 - source ~/.bash_profile
 

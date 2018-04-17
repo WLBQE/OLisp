@@ -54,7 +54,8 @@ rule token = parse
   | "constructor" { check s; CONSTR }
   | "true"        { check s; BOOLLIT true }
   | "false"       { check s; BOOLLIT false }
-  | '-'? digit+ as lxm { check s; LIT (int_of_string lxm) }
+  | '-'? digit+ as lxm { check s; LIT (try int_of_string lxm
+      with Failure _ -> raise (Failure ("integer " ^ lxm ^ " out of range"))) }
   | letter (letter | digit | '_')* as lxm { check s; ID lxm }
   | (letter (letter | digit | '_')* '.')+ letter (letter | digit | '_')* as lxm { check s; MEMID lxm }
   | '-'? digit+ '.' digit+ as lxm { check s; DOUBLELIT lxm }

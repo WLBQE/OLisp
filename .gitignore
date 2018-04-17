@@ -7,5 +7,6 @@ tests/*.ll
 tests/*.s
 tests/*.exe
 tests/*.result
+*.log
 
 .DS_Store
