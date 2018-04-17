@@ -5,35 +5,32 @@ Linli Wan     lw2780@columbia.edu
 Zhixuan Zheng zz2486@columbia.edu
 
 
-To build our compiler, first make sure that opam package
-'llvm' is installed, and the OCaml version is at least 3.12.
-Then, in the project root path, type:
+To build our compiler, first make sure that opam package 'llvm' is installed,
+and the OCaml version is at least 3.12. Then, in the project root path, type:
   make
 
-To run our test suite, first make sure that commands 'clang'
-and 'llc' are properly linked.
-Then, in the project root path, type:
+To run our test suite, first make sure that commands 'clang' and 'llc' are
+properly linked. Then, in the project root path, type:
   ./test_all.sh
 
-Test results are printed to stdout. Any test failure will be
-logged in test_all.log
+Test results will be printed to stdout, and any test failure will be logged in
+'test_all.log'
 
 
 10 test programs
 
 8. fail_add.olisp (negative)
-In OLisp, built-in lambda '+' (i.e. add operator) can only be
-applied to two or more arguments of the same type (either int
-or double). In this program, '+' is applied to an integer and
-a double, which leads to a sematic error "double and int do
-not match".
+In OLisp, built-in lambda '+' (i.e. add operator) can only be applied to two or
+more arguments of the same type (either int or double). In this program, '+' is
+applied to an integer and a double, which leads to a sematic error "double and
+int do not match".
 
 9. fail_call.olisp (negative)
-In this program, lambda expression 'foo' takes an integer and
-returns an integer. But 'foo' is then applied to a double,
-which leads to a semantic error "double and int do not match".
+In this program, lambda expression 'foo' takes an integer and returns an
+integer. But 'foo' is then applied to a double, which leads to a semantic error
+"double and int do not match".
 
 10. fail_define.olisp (negative)
-In OLisp, an global identifier can only be bound once. In this
-program, the identifier 'a' is bound twice, which leads to a
-semantic error "identifier a is already declared".
+In OLisp, an global identifier can only be bound once. In this program, the
+identifier 'a' is bound twice, which leads to a semantic error "identifier a is
+already declared".
