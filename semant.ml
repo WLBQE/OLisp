@@ -125,17 +125,8 @@ let check toplevels =
           | _ -> raise (Failure ("member " ^ hd ^ " is not a class"))))
     in
     (match names with
-        [id] when StringMap.mem id cls -> (try StringMap.find (id ^ "." ^ name) global
-          with Not_found -> raise (Failure ("class " ^ id ^ " does not have static member " ^ name)))
-      | _ -> let cls_name = (match names with
-          | id1 :: (id2 :: tl) when StringMap.mem id1 cls -> let class_id = id1 ^ "." ^ id2 in
-            let class_name = (match (try StringMap.find class_id global with Not_found ->
-              raise (Failure ("class " ^ id1 ^ " does not have static member " ^ id2))) with
-                SClass name -> name
-              | _ -> raise (Failure (class_id ^ " is not a class")))
-            in
-            get_combined_cls_name class_name tl
-          | id :: tl -> get_combined_cls_name
+        _ -> let cls_name = (match names with
+            id :: tl -> get_combined_cls_name
             (match type_of_id id syms with
                 SClass name -> name
               | _ -> raise (Failure (id ^ " is not a class"))) tl
@@ -170,17 +161,7 @@ let check toplevels =
           let expr' = check_expr [sym] cls expr in SBind (confirm_type typ expr', name, expr') :: checked))
     | DeclClass (name, memlist, constrlist) ->
       let add_members (sym, vars, smembers) = function
-          MemConst (name_mem, typ, expr) -> let typ = check_type cls typ in
-          let mem_id = name ^ "." ^ name_mem in
-          if StringMap.mem mem_id sym then raise (Failure ("identifier " ^ mem_id ^ " is already declared"))
-          else (match typ with
-              SLambda (_, _) -> let sym' = StringMap.add mem_id typ sym in
-              let expr' = check_expr [sym'] cls expr in
-              (sym', vars, SMemConst (name_mem, confirm_type typ expr', expr') :: smembers)
-            | _ -> let expr' = check_expr [sym] cls expr in
-              (StringMap.add mem_id typ sym, vars,
-                SMemConst (name_mem, confirm_type typ expr', expr') :: smembers))
-        | MemVar (name_mem, typ) -> if StringMap.mem name_mem vars
+          MemVar (name_mem, typ) -> if StringMap.mem name_mem vars
           then raise (Failure ("member " ^ name_mem ^ " is already declared"))
           else let typ = check_type cls typ in
             (sym, StringMap.add name_mem typ vars, SMemVar (name_mem, typ) :: smembers)

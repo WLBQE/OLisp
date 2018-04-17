@@ -106,5 +106,4 @@ mem_list:
   | mem_list mem { $2 :: $1 }
 
 mem:
-    LPAREN MEMBER LPAREN typ ID RPAREN RPAREN      { MemVar ($5, $4) }
-  | LPAREN MEMBER LPAREN typ ID RPAREN expr RPAREN { MemConst ($5, $4, $7) }
+    LPAREN MEMBER LPAREN typ ID RPAREN RPAREN { MemVar ($5, $4) }

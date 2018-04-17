@@ -32,8 +32,7 @@ type expr =
   | LambdaExpr of typ list * ret_typ * string list * expr
 
 type member =
-    MemConst of string * typ * expr
-  | MemVar of string * typ
+    MemVar of string * typ
 
 type toplevel =
     Bind of typ * string * expr
@@ -112,8 +111,7 @@ let rec string_of_expr = function
       ^ string_of_formal_list formal_list ^ ") " ^ string_of_expr expr ^ ")"
 
 let string_of_member = function
-    MemConst (name, typ, expr) -> "(member (" ^ string_of_typ typ ^ " " ^ name ^ ") " ^ string_of_expr expr ^ ")"
-  | MemVar (name, typ) -> "(member (" ^ string_of_typ typ ^ " " ^ name ^ "))"
+    MemVar (name, typ) -> "(member (" ^ string_of_typ typ ^ " " ^ name ^ "))"
 
 let string_of_top_level = function
     Bind (typ, name, expr) -> "(define (" ^ string_of_typ typ ^ " " ^ name ^ ") " ^ string_of_expr expr ^ ")\n"

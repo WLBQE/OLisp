@@ -27,8 +27,7 @@ and sx =
   | SLambdaExpr of styp list * sret_typ * string list * sexpr
 
 type smember =
- 	  SMemConst of string * styp * sexpr
-  | SMemVar of string * styp
+    SMemVar of string * styp
 
 type stoplevel =
     SBind of styp * string * sexpr
@@ -71,8 +70,7 @@ let rec string_of_sexpr (t, e) =
         ^ string_of_formal_list formal_list ^ ") " ^ string_of_sexpr expr ^ ")") ^ ")"
 
 let rec string_of_smember = function
-    SMemConst (name, typ, sexpr) -> "(member (" ^ string_of_styp typ ^ " " ^ name ^ ") " ^ string_of_sexpr sexpr ^ ")"
-  | SMemVar (name, typ) -> "(member (" ^ string_of_styp typ ^ " " ^ name ^ "))"
+    SMemVar (name, typ) -> "(member (" ^ string_of_styp typ ^ " " ^ name ^ "))"
 
 let string_of_stop_level = function
     SBind (typ, name, expr) -> "(define (" ^ string_of_styp typ ^ " " ^ name ^ ") " ^ string_of_sexpr expr ^ ")\n"
