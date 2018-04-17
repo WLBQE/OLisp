@@ -1,1 +1,1 @@
-(+ 1 1.5)
+(+ 1 1.5) // arguments of built-in lambda + must be of the same type

@@ -1,2 +1,2 @@
 (define (int a) 3)
-(define (int a) 4)
+(define (int a) 4) // redeclaring identifier a
