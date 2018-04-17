@@ -1,10 +1,9 @@
 os: osx
 
 before_install:
-- brew unlink python # required, otherwise opam cannot be installed properly
+- brew remove --force --ignore-dependencies $(brew list)
 - brew update
 - brew upgrade
-- brew install ocamlbuild
 - brew install opam
 - opam init -y
 - eval `opam config env`
