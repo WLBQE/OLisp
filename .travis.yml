@@ -13,6 +13,7 @@ before_install:
 - brew install llvm
 - opam install -y llvm
 - echo 'export PATH="/usr/local/opt/llvm/bin:$PATH"' >> ~/.bash_profile
+- source ~/.bash_profile
 
 install:
 - make
