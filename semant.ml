@@ -8,6 +8,10 @@ let check toplevels =
     if ret = SVarType typ then typ else
       raise (Failure (string_of_sret_typ ret ^ " and " ^ string_of_styp typ ^ " do not match"))
   in
+  let confirm_type2 typ (ret, _) =
+    if ret = SVarType typ then typ else
+      raise (Failure (string_of_sret_typ ret ^ " and " ^ string_of_styp typ ^ " do not match!!!!"))
+  in
   let confirm_ret_type ret_typ (ret, _) =
     if ret = ret_typ then ret_typ else
       raise (Failure (string_of_sret_typ ret ^ " and " ^ string_of_sret_typ ret_typ ^ " do not match"))
@@ -77,8 +81,8 @@ let check toplevels =
       | Cdr -> (match args with
           [(SVarType (SList t), _)] -> SVarType (SList t)
         | _ -> raise (Failure "cdr: invalid argument"))
-      | Append -> (match args with
-          [(SVarType (SList t1), _); (SVarType (SList t2), _)] when t1 = t2 -> SVarType (SList t1)
+      | Append -> (match check_same_type args with
+          SVarType (SList t) :: _ when List.length args > 1 -> SVarType (SList t)
         | _ -> raise (Failure "append: invalid arguments"))
       | Empty -> (match args with
           [(SVarType (SList _), _)] -> SVarType SBool
@@ -132,7 +136,7 @@ let check toplevels =
             in
             get_combined_cls_name class_name tl
           | id :: tl -> get_combined_cls_name
-            (match (try StringMap.find id global with Not_found ->
+            (match (try type_of_id id syms with Not_found ->
               raise (Failure ("undeclared identifier: " ^ id))) with
                 SClass name -> name
               | _ -> raise (Failure (id ^ " is not a class"))) tl
@@ -161,8 +165,8 @@ let check toplevels =
       Bind (typ, name, expr) -> if StringMap.mem name sym
       then raise (Failure ("identifier " ^ name ^ " is already declared"))
       else let typ = check_type cls typ in (match typ with
-          SLambda (_, _) -> let sym' = StringMap.add name typ sym in (sym', cls,
-            let expr' = check_expr [sym; sym'] cls expr in SBind (confirm_type typ expr', name, expr') :: checked)
+          SLambda (_, _) -> let sym = StringMap.add name typ sym in (sym, cls,
+            let expr' = check_expr [sym] cls expr in SBind (confirm_type2 typ expr', name, expr') :: checked)
         | _ -> (StringMap.add name typ sym, cls,
           let expr' = check_expr [sym] cls expr in SBind (confirm_type typ expr', name, expr') :: checked))
     | DeclClass (name, memlist, constrlist) ->
@@ -177,8 +181,10 @@ let check toplevels =
             | _ -> let expr' = check_expr [sym] cls expr in
               (StringMap.add mem_id typ sym, vars,
                 SMemConst (name_mem, confirm_type typ expr', expr') :: smembers))
-        | MemVar (name_mem, typ) -> let typ = check_type cls typ in
-          (sym, StringMap.add name_mem typ vars, SMemVar (name_mem, typ) :: smembers)
+        | MemVar (name_mem, typ) -> if StringMap.mem name_mem vars
+          then raise (Failure ("member " ^ name_mem ^ " is already declared"))
+          else let typ = check_type cls typ in
+            (sym, StringMap.add name_mem typ vars, SMemVar (name_mem, typ) :: smembers)
       in
       let (sym', vars, smembers) = List.fold_left add_members (sym, StringMap.empty, []) memlist in
       let check_constructor sym =

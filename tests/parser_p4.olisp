@@ -1,18 +1,17 @@
 (class trivial
-  (member (int bar) -1)
-  (constructor))
+  (member (int bar))
+  (constructor bar))
 
 (class circle
   (member (double radius))
   (member (string color))
-  (member (trivial foo) (trivial))
-  (member ((void -> double) getArea)
-    (lambda (void -> double)()
-      (* radius radius 3.14)))
-  (constructor radius color))
+  (member (trivial foo))
+  (constructor radius color foo))
 
-(define (circle c) (circle 1 "Black"))
+(define ((circle -> double) circle_area)
+  (lambda (circle -> double) (c) (* c.radius c.radius 3.14)))
+
+(define (circle c) (circle 1.0 "Black" (trivial 3)))
 
 (print c.color)
-
 (print c.foo.bar)

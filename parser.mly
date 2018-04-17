@@ -40,7 +40,7 @@ typ:
   | STRING { String }
   | ID     { Class $1 }
   | LBRACK typ RBRACK { List $2 }
-  | LPAREN type_list ARROW ret_type RPAREN { Lambda (List.rev $2, $4) }
+  | LPAREN type_list ARROW ret_type RPAREN { Lambda ($2, $4) }
 
 type_list:
     VOID          { [] }

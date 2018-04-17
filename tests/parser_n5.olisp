@@ -1,5 +1,5 @@
 // Wrong keyword
 (define a_class // The correct usage is (class a_class ...)
   (member (int a))
-  (member (int b) 123)
-  (constructor a))
+  (member (int b))
+  (constructor a b))
