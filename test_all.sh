@@ -3,6 +3,14 @@
 CC="clang"
 LLC="llc"
 
+tests=(
+	test_print_1
+)
+
+fails=(
+	
+)
+
 ./olisp.native tests/test_print_1.olisp > tests/test_print_1.ll
 
 if [[ $? -ne 0 ]]; then
