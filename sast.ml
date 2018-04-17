@@ -31,7 +31,7 @@ type sfunc_decl = {
     styp : typ;
     stype_list: typ list;
     sformal_list : string list;
-    sbody : sexpr list;
+    sbody : sexpr;
 }
 
 type smember =
