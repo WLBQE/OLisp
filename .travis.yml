@@ -4,7 +4,7 @@ osx_image: xcode9.3
 before_install:
 - brew remove --force --ignore-dependencies $(brew list)
 - brew update
-- brew install cmake git llvm opam pkg-config
+- brew install cmake darcs git llvm mercurial opam pkg-config
 - opam init -yq
 - eval `opam config env`
 - opam install -yq llvm
