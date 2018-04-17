@@ -28,6 +28,6 @@ for (( i = 0; i < neg_tests; i++ )); do
 	fi
 done
 
-printf "\\n%d of %d tests passed!\\n\\n" "$passed" "$((pos_tests + neg_tests))"
+printf "\\n%d of %d tests passed!\\n\\n" $((passed)) $((pos_tests + neg_tests))
 
 exit $((pos_tests + neg_tests - passed))

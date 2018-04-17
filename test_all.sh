@@ -16,11 +16,14 @@ fails=(
 	fail_define
 )
 
-failed=0
+total=0
+passed=0
 
 rm -f "$LOG"
+printf "\\n"
 
 for pass in "${tests[@]}"; do
+	((++total))
 	printf "testing %s..." "$pass"
 	printf "test %s\\n" "$pass" >> "$LOG"
 	if "$OLISP" "$TESTDIR$pass.olisp" > "$TESTDIR/$pass.ll" 2>> "$LOG"; then
@@ -29,19 +32,17 @@ for pass in "${tests[@]}"; do
 				"$TESTDIR$pass.exe" > "$TESTDIR$pass.result" 2>> "$LOG"
 				if diff "$TESTDIR$pass.out" "$TESTDIR$pass.result" >> "$LOG" 2>&1; then
 					printf "passed\\n"
+					((++passed))
 				else
 					printf "failed1\\n"
-					((++failed))
 				fi
 				rm -f "$TESTDIR$pass.result"
 			else
 				printf "failed\\n"
-				((++failed))
 			fi
 			rm -f "$TESTDIR$pass.exe"
 		else
 			printf "failed\\n"
-			((++failed))
 		fi
 		rm -f "$TESTDIR$pass.s"
 	else
@@ -52,22 +53,26 @@ for pass in "${tests[@]}"; do
 	printf "\\n" >> "$LOG"
 done
 
+printf "\\n"
+
 for fail in "${fails[@]}"; do
+	((++total))
 	printf "testing %s..." "$fail"
 	printf "test %s\\n" "$fail" >> "$LOG"
 	if "$OLISP" "$TESTDIR$fail.olisp" 2> "$TESTDIR$fail.result" >> "$LOG"; then
 		printf "failed\\n"
-		((++failed))
 	else
 		if diff "$TESTDIR$fail.err" "$TESTDIR$fail.result" >> "$LOG" 2>&1; then
 			printf "passed\\n"
+			((++passed))
 		else
 			printf "failed\\n"
-			((++failed))
 		fi
 	fi
 	rm -f "$TESTDIR$fail.result"
 	printf "\\n" >> "$LOG"
 done
 
-exit $((failed))
+printf "\\n%d of %d tests passed\\n\\n" $((passed)) $((total))
+
+exit $((total - passed))
