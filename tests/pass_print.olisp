@@ -24,7 +24,6 @@
 
 (define ((double -> int) foo) (lambda (double -> int) (a) (d2i (+ a 1.22))))
 (foo 1.2)
-foo
 
 (class boo
   (member (string a))

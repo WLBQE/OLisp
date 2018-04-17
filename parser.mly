@@ -29,7 +29,8 @@ top_level_list:
 
 top_level:
     LPAREN DEFINE LPAREN typ ID RPAREN expr RPAREN { Bind ($4, $5, $7) }
-  | LPAREN CLASS ID mem_list LPAREN CONSTR formal_list RPAREN RPAREN { DeclClass ($3, List.rev $4, List.rev $7) }
+  | LPAREN CLASS ID mem_list LPAREN CONSTR formal_list RPAREN RPAREN
+    { DeclClass ($3, List.rev $4, List.rev $7) }
   | expr { Expr($1) }
 
 typ:

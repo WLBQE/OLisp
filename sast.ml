@@ -55,21 +55,20 @@ and string_of_sret_typ = function
 
 let rec string_of_sexpr (t, e) = 
   "(" ^ string_of_sret_typ t ^ " : " ^ (match e with
-    SLit lit -> string_of_int lit
-  | SDoubleLit dlit -> dlit
-  | SBoolLit blit -> string_of_bool blit
-  | SStringLit slit -> "\"" ^ String.escaped slit ^ "\""
-  | SBuiltIn builtin -> string_of_built_in builtin
-  | SId id -> id
-  | SMemId (cls, mem) -> List.fold_left (fun str cls -> str ^ cls ^ ".") "" cls ^ mem
-  | SCall (exp, exps) ->
+      SLit lit -> string_of_int lit
+    | SDoubleLit dlit -> dlit
+    | SBoolLit blit -> string_of_bool blit
+    | SStringLit slit -> "\"" ^ String.escaped slit ^ "\""
+    | SBuiltIn builtin -> string_of_built_in builtin
+    | SId id -> id
+    | SMemId (cls, mem) -> List.fold_left (fun str cls -> str ^ cls ^ ".") "" cls ^ mem
+    | SCall (exp, exps) ->
       "(" ^ string_of_sexpr exp ^ List.fold_left (fun str exp -> str ^ " " ^ string_of_sexpr exp) "" exps ^ ")"
-  | SLst (typ, exps) ->
+    | SLst (typ, exps) ->
       "(list " ^ string_of_styp typ ^ List.fold_left (fun str exp -> str ^ " " ^ string_of_sexpr exp) "" exps ^ ")"
-  | SLambdaExpr (typ_list, ret_typ, formal_list, expr) ->
+    | SLambdaExpr (typ_list, ret_typ, formal_list, expr) ->
       "(lambda (" ^ string_of_styp_list typ_list ^ "-> " ^ string_of_sret_typ ret_typ ^ ") ("
-      ^ string_of_formal_list formal_list ^ ") " ^ string_of_sexpr expr ^ ")"
-  ) ^ ")"
+        ^ string_of_formal_list formal_list ^ ") " ^ string_of_sexpr expr ^ ")") ^ ")"
 
 let rec string_of_smember = function
     SMemConst (name, typ, sexpr) -> "(member (" ^ string_of_styp typ ^ " " ^ name ^ ") " ^ string_of_sexpr sexpr ^ ")"
@@ -78,7 +77,7 @@ let rec string_of_smember = function
 let string_of_stop_level = function
     SBind (typ, name, expr) -> "(define (" ^ string_of_styp typ ^ " " ^ name ^ ") " ^ string_of_sexpr expr ^ ")\n"
   | SDeclClass (name, members, formals) ->
-      "(class " ^ name ^ " " ^ List.fold_left (fun str mem -> str ^ string_of_smember mem ^ " ") "" members
+    "(class " ^ name ^ " " ^ List.fold_left (fun str mem -> str ^ string_of_smember mem ^ " ") "" members
       ^ "(constructor" ^ List.fold_left (fun str formal -> str ^ " " ^ formal) "" formals ^ "))\n"
   | SExpr expr -> string_of_sexpr expr ^ "\n"
 

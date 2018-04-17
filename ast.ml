@@ -104,12 +104,12 @@ let rec string_of_expr = function
   | Id id -> id
   | MemId (cls, mem) -> List.fold_left (fun str cls -> str ^ cls ^ ".") "" cls ^ mem
   | Call (exp, exps) ->
-      "(" ^ string_of_expr exp ^ List.fold_left (fun str exp -> str ^ " " ^ string_of_expr exp) "" exps ^ ")"
+    "(" ^ string_of_expr exp ^ List.fold_left (fun str exp -> str ^ " " ^ string_of_expr exp) "" exps ^ ")"
   | Lst (typ, exps) ->
-      "(list " ^ string_of_typ typ ^ List.fold_left (fun str exp -> str ^ " " ^ string_of_expr exp) "" exps ^ ")"
+    "(list " ^ string_of_typ typ ^ List.fold_left (fun str exp -> str ^ " " ^ string_of_expr exp) "" exps ^ ")"
   | LambdaExpr (typ_list, ret_typ, formal_list, expr) ->
-      "(lambda (" ^ string_of_typ_list typ_list ^ "-> " ^ string_of_ret_typ ret_typ ^ ") ("
-        ^ string_of_formal_list formal_list ^ ") " ^ string_of_expr expr ^ ")"
+    "(lambda (" ^ string_of_typ_list typ_list ^ "-> " ^ string_of_ret_typ ret_typ ^ ") ("
+      ^ string_of_formal_list formal_list ^ ") " ^ string_of_expr expr ^ ")"
 
 let string_of_member = function
     MemConst (name, typ, expr) -> "(member (" ^ string_of_typ typ ^ " " ^ name ^ ") " ^ string_of_expr expr ^ ")"
@@ -118,8 +118,8 @@ let string_of_member = function
 let string_of_top_level = function
     Bind (typ, name, expr) -> "(define (" ^ string_of_typ typ ^ " " ^ name ^ ") " ^ string_of_expr expr ^ ")\n"
   | DeclClass (name, members, formals) ->
-      "(class " ^ name ^ " " ^ List.fold_left (fun str mem -> str ^ string_of_member mem ^ " ") "" members
-        ^ "(constructor" ^ List.fold_left (fun str formal -> str ^ " " ^ formal) "" formals ^ "))\n"
+    "(class " ^ name ^ " " ^ List.fold_left (fun str mem -> str ^ string_of_member mem ^ " ") "" members
+      ^ "(constructor" ^ List.fold_left (fun str formal -> str ^ " " ^ formal) "" formals ^ "))\n"
   | Expr expr -> string_of_expr expr ^ "\n"
 
 let rec string_of_top_level_list = function
