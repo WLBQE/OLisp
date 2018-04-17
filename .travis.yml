@@ -1,4 +1,4 @@
-os: osx
+osx_image: xcode9.3
 
 before_install:
 - brew remove --force --ignore-dependencies $(brew list)
