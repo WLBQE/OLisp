@@ -1,0 +1,4 @@
+(define ((int -> int) foo)
+  (lambda (int -> int) (n) (* n 2)))
+
+(print (foo 1.5)) // argument type does not match with lambda

@@ -13,6 +13,7 @@ tests=(
 
 fails=(
 	fail_add
+	fail_call
 	fail_define
 )
 
@@ -34,7 +35,7 @@ for pass in "${tests[@]}"; do
 					printf "passed\\n"
 					((++passed))
 				else
-					printf "failed1\\n"
+					printf "failed\\n"
 				fi
 				rm -f "$TESTDIR$pass.result"
 			else
@@ -47,7 +48,6 @@ for pass in "${tests[@]}"; do
 		rm -f "$TESTDIR$pass.s"
 	else
 		printf "failed\\n"
-		((++failed))
 	fi
 	rm -f "$TESTDIR$pass.ll"
 	printf "\\n" >> "$LOG"

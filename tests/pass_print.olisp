@@ -37,10 +37,9 @@
 (class circle
   (member (double radius))
   (member (string color))
-  (member (trivial foo) (trivial 2 (boo "haha")))
-  (member (bool baz) true)
-  (constructor radius color))
+  (member (trivial foo))
+  (constructor radius color foo))
 
-(define (circle c) (circle 2.5 "blue"))
-(print circle.foo.bar)
-(print circle.foo.blaz.a)
+(define (circle c) (circle 2.5 "blue" (trivial 2 (boo "boo!"))))
+(print c.foo.bar)
+(print c.foo.blaz.a)

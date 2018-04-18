@@ -77,8 +77,8 @@ let check toplevels =
       | Cdr -> (match args with
           [(SVarType (SList t), _)] -> SVarType (SList t)
         | _ -> raise (Failure "cdr: invalid argument"))
-      | Append -> (match args with
-          [(SVarType (SList t1), _); (SVarType (SList t2), _)] when t1 = t2 -> SVarType (SList t1)
+      | Append -> (match check_same_type args with
+          SVarType (SList t) :: _ when List.length args > 1 -> SVarType (SList t)
         | _ -> raise (Failure "append: invalid arguments"))
       | Empty -> (match args with
           [(SVarType (SList _), _)] -> SVarType SBool
@@ -107,40 +107,24 @@ let check toplevels =
   | BuiltIn builtin -> (SBuiltInTyp builtin, SBuiltIn builtin)
   | Id name -> (SVarType (type_of_id name syms), SId name)
   | MemId (names, name) -> (SVarType (
-    let global = List.hd (List.rev syms) in
     let rec get_combined_cls_name outer_name = (function
         [] -> outer_name
       | hd :: tl -> let (vars, _) = try StringMap.find outer_name cls with Not_found ->
-          raise (Failure (outer_name ^ " is not a class"))
-        in
+          raise (Failure (outer_name ^ " is not a class")) in
         let hd_type = try StringMap.find hd vars with Not_found ->
-          raise (Failure ("class " ^ outer_name ^ " does not have non-static member " ^ hd))
-        in
+          raise (Failure ("class " ^ outer_name ^ " does not have member " ^ hd)) in
         (match hd_type with
             SClass name -> get_combined_cls_name name tl
           | _ -> raise (Failure ("member " ^ hd ^ " is not a class"))))
     in
-    (match names with
-        [id] when StringMap.mem id cls -> (try StringMap.find (id ^ "." ^ name) global
-          with Not_found -> raise (Failure ("class " ^ id ^ " does not have static member " ^ name)))
-      | _ -> let cls_name = (match names with
-          | id1 :: (id2 :: tl) when StringMap.mem id1 cls -> let class_id = id1 ^ "." ^ id2 in
-            let class_name = (match (try StringMap.find class_id global with Not_found ->
-              raise (Failure ("class " ^ id1 ^ " does not have static member " ^ id2))) with
-                SClass name -> name
-              | _ -> raise (Failure (class_id ^ " is not a class")))
-            in
-            get_combined_cls_name class_name tl
-          | id :: tl -> get_combined_cls_name
-            (match (try StringMap.find id global with Not_found ->
-              raise (Failure ("undeclared identifier: " ^ id))) with
-                SClass name -> name
-              | _ -> raise (Failure (id ^ " is not a class"))) tl
-          | _ -> raise (Failure "internal error"))
-        in
-        let (vars, _) = StringMap.find cls_name cls in
-        try StringMap.find name vars with Not_found ->
-          raise (Failure ("class " ^ cls_name ^ " does not have non-static member " ^ name)))),
+    let cls_name = get_combined_cls_name (let id = List.hd names in
+      match type_of_id id syms with
+          SClass name -> name
+        | _ -> raise (Failure (id ^ " is not a class"))) (List.tl names)
+    in
+    let (vars, _) = StringMap.find cls_name cls in
+    try StringMap.find name vars with Not_found ->
+      raise (Failure ("class " ^ cls_name ^ " does not have member " ^ name))),
     SMemId (names, name))
   | Call (lamb, args) -> check_call (check_expr syms cls lamb) (List.map (check_expr syms cls) args)
   | Lst (typ, exprs) -> let typ = check_type cls typ in
@@ -161,26 +145,17 @@ let check toplevels =
       Bind (typ, name, expr) -> if StringMap.mem name sym
       then raise (Failure ("identifier " ^ name ^ " is already declared"))
       else let typ = check_type cls typ in (match typ with
-          SLambda (_, _) -> let sym' = StringMap.add name typ sym in (sym', cls,
-            let expr' = check_expr [sym; sym'] cls expr in SBind (confirm_type typ expr', name, expr') :: checked)
+          SLambda (_, _) -> let sym = StringMap.add name typ sym in (sym, cls,
+            let expr' = check_expr [sym] cls expr in SBind (confirm_type typ expr', name, expr') :: checked)
         | _ -> (StringMap.add name typ sym, cls,
           let expr' = check_expr [sym] cls expr in SBind (confirm_type typ expr', name, expr') :: checked))
     | DeclClass (name, memlist, constrlist) ->
-      let add_members (sym, vars, smembers) = function
-          MemConst (name_mem, typ, expr) -> let typ = check_type cls typ in
-          let mem_id = name ^ "." ^ name_mem in
-          if StringMap.mem mem_id sym then raise (Failure ("identifier " ^ mem_id ^ " is already declared"))
-          else (match typ with
-              SLambda (_, _) -> let sym' = StringMap.add mem_id typ sym in
-              let expr' = check_expr [sym'] cls expr in
-              (sym', vars, SMemConst (name_mem, confirm_type typ expr', expr') :: smembers)
-            | _ -> let expr' = check_expr [sym] cls expr in
-              (StringMap.add mem_id typ sym, vars,
-                SMemConst (name_mem, confirm_type typ expr', expr') :: smembers))
-        | MemVar (name_mem, typ) -> let typ = check_type cls typ in
-          (sym, StringMap.add name_mem typ vars, SMemVar (name_mem, typ) :: smembers)
+      let add_member (sym, vars, smembers) (name_mem, typ) =
+          if StringMap.mem name_mem vars then raise (Failure ("member " ^ name_mem ^ " is already declared"))
+          else let typ = check_type cls typ in
+            (sym, StringMap.add name_mem typ vars, (name_mem, typ) :: smembers)
       in
-      let (sym', vars, smembers) = List.fold_left add_members (sym, StringMap.empty, []) memlist in
+      let (sym', vars, smembers) = List.fold_left add_member (sym, StringMap.empty, []) memlist in
       let check_constructor sym =
         let list_equal l1 l2 = try List.map2 (fun a b ->
           if a <> b then raise (Failure ("class " ^ name ^ ": invalid constructor"))) l1 l2

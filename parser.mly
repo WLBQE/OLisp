@@ -40,7 +40,7 @@ typ:
   | STRING { String }
   | ID     { Class $1 }
   | LBRACK typ RBRACK { List $2 }
-  | LPAREN type_list ARROW ret_type RPAREN { Lambda (List.rev $2, $4) }
+  | LPAREN type_list ARROW ret_type RPAREN { Lambda ($2, $4) }
 
 type_list:
     VOID          { [] }
@@ -106,5 +106,4 @@ mem_list:
   | mem_list mem { $2 :: $1 }
 
 mem:
-    LPAREN MEMBER LPAREN typ ID RPAREN RPAREN      { MemVar ($5, $4) }
-  | LPAREN MEMBER LPAREN typ ID RPAREN expr RPAREN { MemConst ($5, $4, $7) }
+    LPAREN MEMBER LPAREN typ ID RPAREN RPAREN { ($5, $4) }
