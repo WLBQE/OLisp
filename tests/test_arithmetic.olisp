@@ -1,6 +1,6 @@
 (print (+ (begin (print 1) 1) (begin (print 2) 2) (begin (print 3) 3)))
 
-(define (double a) 1.2)
+(define (double a) (+ -1.0 2.2))
 (define (double b) 1.5)
 (print (+ a b))
 (print (* a b))

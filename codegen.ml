@@ -71,8 +71,10 @@ let translate (sym, cls, stoplevels) =
               | _ -> raise (Failure "compiler bug"))
             in
             let rec build_multivar = (function
-                hd :: [e] -> linstr (build_expr builder env e) (build_expr builder env hd) "val" builder
-              | hd :: (h :: t) -> linstr (build_multivar (h :: t)) (build_expr builder env hd) "val" builder
+                hd :: [e] -> let arg1 = (build_expr builder env hd) in
+                linstr arg1 (build_expr builder env e) "val" builder
+              | hd :: (h :: t) -> let arg1 = (build_expr builder env hd) in
+                linstr arg1 (build_multivar (h :: t)) "val" builder
               | _ -> raise (Failure "compiler bug"))
             in
             build_multivar exprs
@@ -100,7 +102,8 @@ let translate (sym, cls, stoplevels) =
                   | _ -> raise (Failure "compiler bug"))
                 in
                 (function
-                    [e1; e2] -> linstr (build_expr builder env e1) (build_expr builder env e2) "val" builder
+                    [e1; e2] -> let arg1 = (build_expr builder env e1) in
+                    linstr arg1 (build_expr builder env e2) "val" builder
                   | _ -> raise (Failure "compiler bug")) exprs
               | SVarType SString -> let comp = (match builtin with
                   Eq -> L.build_icmp L.Icmp.Eq
