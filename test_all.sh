@@ -9,6 +9,7 @@ TESTDIR="tests/"
 
 tests=(
 	test_print_1
+	test_print_2
 )
 
 fails=(
