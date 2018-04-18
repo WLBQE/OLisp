@@ -9,7 +9,7 @@
 (define (int c) 25)
 (define (int d) 10)
 (define (int e) 1)
-(print (* c d e))
+(print (* c d (+ e (+ e 1 1))))
 (print (- c d))
 (print (/ c d))
 (print (% c d))

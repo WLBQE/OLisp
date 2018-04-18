@@ -1,0 +1,8 @@
+(define (string s1) "hello")
+(define (string s2) "world")
+(define (string s3) "hello")
+
+(print (= s1 s2))
+(print (!= s1 s2))
+(print (= s1 s3))
+(print (!= s1 s3))

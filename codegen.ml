@@ -9,7 +9,7 @@ let translate (sym, cls, stoplevels) =
   let i8_t = L.i8_type context in
   let i1_t = L.i1_type context in
   let double_t = L.double_type context in
-  let void_t = L.void_type context in
+  (*let void_t = L.void_type context in*)
   let the_module = L.create_module context "OLisp" in
   let rec ltype_of_styp = function
       SInt -> i32_t
@@ -18,11 +18,11 @@ let translate (sym, cls, stoplevels) =
     | SString -> L.pointer_type i8_t
     | _ -> raise (Failure "to be implemented")
   in
-  let rec ltype_of_sret_typ = function
+  (*let rec ltype_of_sret_typ = function
       SVarType typ -> ltype_of_styp typ
-    | SBuiltInTyp builtin -> raise (Failure "to be implemented")
+    | SBuiltInTyp builtin -> raise (Failure "compiler bug")
     | SVoid -> void_t
-  in
+  in*)
   let global_vars =
     let add_global_var mp (name, typ) =
       let init = match typ with
@@ -39,6 +39,8 @@ let translate (sym, cls, stoplevels) =
   in
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let printf_func = L.declare_function "printf" printf_t the_module in
+  let strcmp_t = L.function_type i32_t [|L.pointer_type i8_t; L.pointer_type i8_t|] in
+  let strcmp_func = L.declare_function "strcmp" strcmp_t the_module in
   let build_program (sym, cls, stoplevels) =
     let main_ty = L.function_type i32_t [||] in
     let main_function = L.define_function "main" main_ty the_module in
@@ -58,34 +60,58 @@ let translate (sym, cls, stoplevels) =
       | SId id -> L.build_load (lookup id env) id builder
       | SCall (lamb, exprs) -> (match lamb with
           (SBuiltInTyp builtin, _) -> (match builtin with
-            Add | Mult -> let (typ, _) = List.hd exprs in
+            Add | Mult | And | Or -> let (typ, _) = List.hd exprs in
             let linstr = (match (typ, builtin) with
                 SVarType SInt, Add -> L.build_add
               | SVarType SDouble, Add -> L.build_fadd
               | SVarType SInt, Mult -> L.build_mul
               | SVarType SDouble, Mult -> L.build_fmul
+              | SVarType SBool, And -> L.build_and
+              | SVarType SBool, Or -> L.build_or
               | _ -> raise (Failure "compiler bug"))
             in
-            let rec build_add_mult = (function
+            let rec build_multivar = (function
                 hd :: [e] -> linstr (build_expr builder env e) (build_expr builder env hd) "val" builder
-              | hd :: (h :: t) -> linstr (build_add_mult (h :: t)) (build_expr builder env hd) "val" builder
+              | hd :: (h :: t) -> linstr (build_multivar (h :: t)) (build_expr builder env hd) "val" builder
               | _ -> raise (Failure "compiler bug"))
             in
-            build_add_mult exprs
-          | Sub | Div | Mod -> let (typ, _) = List.hd exprs in
-            let linstr = (match (typ, builtin) with
-                SVarType SInt, Sub -> L.build_sub
-              | SVarType SDouble, Sub -> L.build_fsub
-              | SVarType SInt, Div -> L.build_sdiv
-              | SVarType SDouble, Div -> L.build_fdiv
-              | SVarType SInt, Mod -> L.build_srem
+            build_multivar exprs
+          | Sub | Div | Mod | Eq | Neq | Lt | Gt | Leq | Geq ->
+            let (typ, _) = List.hd exprs in (match typ with
+                SVarType SInt | SVarType SDouble | SVarType SBool ->
+                let linstr = (match (typ, builtin) with
+                    SVarType SInt, Sub -> L.build_sub
+                  | SVarType SDouble, Sub -> L.build_fsub
+                  | SVarType SInt, Div -> L.build_sdiv
+                  | SVarType SDouble, Div -> L.build_fdiv
+                  | SVarType SInt, Mod -> L.build_srem
+                  | SVarType SInt, Eq | SVarType SBool, Eq -> L.build_icmp L.Icmp.Eq
+                  | SVarType SDouble, Eq -> L.build_fcmp L.Fcmp.Oeq
+                  | SVarType SInt, Neq | SVarType SBool, Neq -> L.build_icmp L.Icmp.Ne
+                  | SVarType SDouble, Neq -> L.build_fcmp L.Fcmp.One
+                  | SVarType SInt, Lt -> L.build_icmp L.Icmp.Slt
+                  | SVarType SDouble, Lt -> L.build_fcmp L.Fcmp.Olt
+                  | SVarType SInt, Gt -> L.build_icmp L.Icmp.Sgt
+                  | SVarType SDouble, Gt -> L.build_fcmp L.Fcmp.Ogt
+                  | SVarType SInt, Leq -> L.build_icmp L.Icmp.Sle
+                  | SVarType SDouble, Leq -> L.build_fcmp L.Fcmp.Ole
+                  | SVarType SInt, Geq -> L.build_icmp L.Icmp.Sge
+                  | SVarType SDouble, Geq -> L.build_fcmp L.Fcmp.Oge
+                  | _ -> raise (Failure "compiler bug"))
+                in
+                (function
+                    [e1; e2] -> linstr (build_expr builder env e1) (build_expr builder env e2) "val" builder
+                  | _ -> raise (Failure "compiler bug")) exprs
+              | SVarType SString -> let comp = (match builtin with
+                  Eq -> L.build_icmp L.Icmp.Eq
+                | Neq -> L.build_icmp L.Icmp.Ne
+                | _ -> raise (Failure "compiler bug"))
+                in
+                (function
+                    [e1; e2] -> comp (L.const_int i32_t 0) (L.build_call strcmp_func
+                      [|(build_expr builder env e1); (build_expr builder env e2)|] "strcmp" builder) "cmp" builder
+                  | _ -> raise (Failure "compiler bug")) exprs
               | _ -> raise (Failure "compiler bug"))
-            in
-            let build_sub_div_mod = (function
-                [e1; e2] -> linstr (build_expr builder env e1) (build_expr builder env e2) "val" builder
-              | _ -> raise (Failure "compiler bug"))
-            in
-            build_sub_div_mod exprs
           | I2d -> L.build_sitofp (build_expr builder env (List.hd exprs))
               (ltype_of_styp SDouble) "double" builder
           | D2i -> L.build_fptosi (build_expr builder env (List.hd exprs))
