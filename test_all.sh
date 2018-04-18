@@ -11,6 +11,8 @@ tests=(
 	test_print_1
 	test_print_2
 	test_define
+	test_cast
+	test_begin
 )
 
 fails=(

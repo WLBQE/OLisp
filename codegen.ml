@@ -11,7 +11,6 @@ let translate (sym, cls, stoplevels) =
   let double_t = L.double_type context in
   let void_t = L.void_type context in
   let the_module = L.create_module context "OLisp" in
-
   let rec ltype_of_styp = function
       SInt -> i32_t
     | SDouble -> double_t
@@ -24,7 +23,6 @@ let translate (sym, cls, stoplevels) =
     | SBuiltInTyp builtin -> raise (Failure "to be implemented")
     | SVoid -> void_t
   in
-
   let global_vars =
     let add_global_var mp (name, typ) =
       let init = match typ with
@@ -35,15 +33,12 @@ let translate (sym, cls, stoplevels) =
       StringMap.add name (L.define_global name init the_module) mp in
     List.fold_left add_global_var StringMap.empty (StringMap.bindings sym)
   in
-
   let rec lookup name = function
       [] -> raise Not_found
     | var :: rest -> try StringMap.find name var with Not_found -> lookup name rest
   in
-
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let printf_func = L.declare_function "printf" printf_t the_module in
-
   let build_program (sym, cls, stoplevels) =
     let main_ty = L.function_type i32_t [||] in
     let main_function = L.define_function "main" main_ty the_module in
@@ -63,7 +58,12 @@ let translate (sym, cls, stoplevels) =
       | SId id -> L.build_load (lookup id env) id builder
       | SCall (lamb, exprs) -> (match lamb with
           (SBuiltInTyp builtin, _) -> (match builtin with
-            Print -> L.build_call printf_func (let e = List.hd exprs in match e with
+            I2d -> L.build_sitofp (build_expr builder env (List.hd exprs))
+              (ltype_of_styp SDouble) "double" builder
+          | D2i -> L.build_fptosi (build_expr builder env (List.hd exprs))
+              (ltype_of_styp SInt) "int" builder
+          | Begin -> List.hd (List.rev (List.map (build_expr builder env) exprs))
+          | Print -> L.build_call printf_func (let e = List.hd exprs in match e with
                 (SVarType SInt, _) -> [|int_format_str; build_expr builder env e|]
               | (SVarType SDouble, _) -> [|double_format_str; build_expr builder env e|]
               | (SVarType SBool, _) -> [|L.build_load (L.build_in_bounds_gep bool_str
@@ -72,10 +72,6 @@ let translate (sym, cls, stoplevels) =
               | (SVarType SString, _) -> [|string_format_str; build_expr builder env e|]
               | _ -> raise (Failure "compiler bug"))
             "printf" builder
-          | I2d -> L.build_sitofp (build_expr builder env (List.hd exprs))
-              (ltype_of_styp SDouble) "double" builder
-          | D2i -> L.build_fptosi (build_expr builder env (List.hd exprs))
-              (ltype_of_styp SInt) "int" builder
           | _ -> raise (Failure "to be implemented: built-in"))
         | (SVarType (SLambda _), _) -> raise (Failure "to be implemented: lambda expressions")
         | _ -> raise (Failure "compiler bug"))
