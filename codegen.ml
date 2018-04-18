@@ -75,7 +75,7 @@ let translate (sym, cls, stoplevels) =
         in
         let sym' = List.fold_left2 add_formal StringMap.empty (List.combine typs formals) params in
         let _ = (match ret with
-            SVoid -> L.build_ret_void lamb_builder
+            SVoid -> ignore (build_expr lamb_builder (sym' :: env) expr); L.build_ret_void lamb_builder
           | _ -> L.build_ret (build_expr lamb_builder (sym' :: env) expr) lamb_builder)
         in
         lamb_function
@@ -151,8 +151,9 @@ let translate (sym, cls, stoplevels) =
               | _ -> raise (Failure "compiler bug"))
             "printf" builder
           | _ -> raise (Failure "to be implemented: built-in"))
-        | (SVarType (SLambda _), _) -> let lamb' = (build_expr builder env lamb) in
-          L.build_call lamb' (Array.of_list (List.map (build_expr builder env) exprs)) "call" builder
+        | (SVarType (SLambda (_, ret)), _) -> let lamb' = (build_expr builder env lamb) in
+          L.build_call lamb' (Array.of_list (List.map (build_expr builder env) exprs))
+            (match ret with SVoid -> "" | _ -> "call") builder
         | _ -> raise (Failure "compiler bug"))
       | _ -> raise (Failure "To be implemented"))
     in

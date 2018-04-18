@@ -7,3 +7,9 @@
 
 (define (((int -> int) int -> int) bar) (lambda ((int -> int) int -> int) (func num) (func num)))
 (print (bar foo 5))
+
+(define ((int -> void) boring) (lambda (int -> void) (n) (print n)))
+(boring 666)
+
+(define ((void -> double) a_double) (lambda (void -> double) () (begin (print 1.4) (* num 1.5))))
+(print (a_double))
