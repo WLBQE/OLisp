@@ -26,14 +26,6 @@ and sx =
   | SLst of styp * sexpr list
   | SLambdaExpr of styp list * sret_typ * string list * sexpr
 
-
-type sfunc_decl = {
-    styp : typ;
-    stype_list: typ list;
-    sformal_list : string list;
-    sbody : sexpr;
-}
-
 type smember =
  	  SMemConst of string * styp * sexpr
   | SMemVar of string * styp

@@ -3,6 +3,13 @@ module A = Ast
 module S = Sast
 open Sast
 
+type sfunc_decl = {
+    styp : typ;
+    stype_list: typ list;
+    sformal_list : string list;
+    sbody : sexpr;
+}
+
 module StringMap = Map.Make(String)
 
 let translate (sym, cls, stoplevels) =
