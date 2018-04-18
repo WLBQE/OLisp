@@ -8,6 +8,8 @@ let translate (sym, cls, stoplevels) =
   let context  = L.global_context () in
   let i32_t = L.i32_type context in
   let i8_t = L.i8_type context in
+  let i1_t = L.i1_type context in
+  let float_t = L.double_type context in
   let void_t = L.void_type context in
   let the_module = L.create_module context "OLisp" in
 
@@ -18,16 +20,23 @@ let translate (sym, cls, stoplevels) =
     let main_ty = L.function_type void_t [||] in
     let the_function = L.define_function "main" main_ty the_module in
     let builder = L.builder_at_end context (L.entry_block the_function) in
-    let int_format_str = L.build_global_stringptr "%d\n" "i_fmt" builder in
+    let int_format_str = L.build_global_stringptr "%d\n" "i_fmt" builder 
+    and float_format_str = L.build_global_stringptr "%g\n" "fmt" builder in
     let rec expr builder ((_, e) : sexpr) = match e with
         SLit i -> L.const_int i32_t i
-      (*| SDoubleLit l -> L.const_float_of_string float_t l*)
-      | SBoolLit b -> L.const_int i8_t (if b then 1 else 0)
+      | SDoubleLit l -> L.const_float_of_string float_t l
+      | SBoolLit b -> L.const_int i1_t (if b then 1 else 0)
       (*| SStringLit ->*) 
       (*| SId s -> L.build_load (lookup s) s builder 
       | SMemId*)
       | SCall ((SBuiltInTyp A.Print, SBuiltIn A.Print), [exp]) ->
-        L.build_call printf_func [| int_format_str ; (expr builder exp) |] "printf" builder
+        let (t, _) = exp in
+        if t = SVarType SDouble then 
+          L.build_call printf_func [| float_format_str ; (expr builder exp) |] "printf" builder
+        else if t = SVarType SString then
+          raise (Failure "To be implemented")
+        else
+          L.build_call printf_func [| int_format_str ; (expr builder exp) |] "printf" builder
       | SCall ((SBuiltInTyp A.Add, SBuiltIn A.Add), [e1; e2]) ->
         let (t, _) = e1 and e1' = expr builder e1 and e2' = expr builder e2 in
         if t = SVarType SDouble then L.build_fadd e1' e2' "tmp" builder
@@ -50,10 +59,12 @@ let translate (sym, cls, stoplevels) =
       | SCall ((SBuiltInTyp A.Eq, SBuiltIn A.Eq), [e1; e2]) ->
         let (t, _) = e1 and e1' = expr builder e1 and e2' = expr builder e2 in
         if t = SVarType SDouble then L.build_fcmp L.Fcmp.Oeq e1' e2' "tmp" builder
+        else if t = SVarType SString then  raise (Failure "To be implemented")
         else L.build_icmp L.Icmp.Eq e1' e2' "tmp" builder
       | SCall ((SBuiltInTyp A.Neq, SBuiltIn A.Neq), [e1; e2]) ->
         let (t, _) = e1 and e1' = expr builder e1 and e2' = expr builder e2 in
         if t = SVarType SDouble then L.build_fcmp L.Fcmp.One e1' e2' "tmp" builder
+        else if t = SVarType SString then raise (Failure "To be implemented") 
         else L.build_icmp L.Icmp.Ne e1' e2' "tmp" builder
       | SCall ((SBuiltInTyp A.Lt, SBuiltIn A.Lt), [e1; e2]) ->
         let (t, _) = e1 and e1' = expr builder e1 and e2' = expr builder e2 in
