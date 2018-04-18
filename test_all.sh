@@ -13,6 +13,7 @@ tests=(
 	test_define
 	test_cast
 	test_begin
+	test_arithmetic
 )
 
 fails=(

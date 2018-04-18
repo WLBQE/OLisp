@@ -58,7 +58,35 @@ let translate (sym, cls, stoplevels) =
       | SId id -> L.build_load (lookup id env) id builder
       | SCall (lamb, exprs) -> (match lamb with
           (SBuiltInTyp builtin, _) -> (match builtin with
-            I2d -> L.build_sitofp (build_expr builder env (List.hd exprs))
+            Add | Mult -> let (typ, _) = List.hd exprs in
+            let linstr = (match (typ, builtin) with
+                SVarType SInt, Add -> L.build_add
+              | SVarType SDouble, Add -> L.build_fadd
+              | SVarType SInt, Mult -> L.build_mul
+              | SVarType SDouble, Mult -> L.build_fmul
+              | _ -> raise (Failure "compiler bug"))
+            in
+            let rec build_add_mult = (function
+                hd :: [e] -> linstr (build_expr builder env e) (build_expr builder env hd) "val" builder
+              | hd :: (h :: t) -> linstr (build_add_mult (h :: t)) (build_expr builder env hd) "val" builder
+              | _ -> raise (Failure "compiler bug"))
+            in
+            build_add_mult exprs
+          | Sub | Div | Mod -> let (typ, _) = List.hd exprs in
+            let linstr = (match (typ, builtin) with
+                SVarType SInt, Sub -> L.build_sub
+              | SVarType SDouble, Sub -> L.build_fsub
+              | SVarType SInt, Div -> L.build_sdiv
+              | SVarType SDouble, Div -> L.build_fdiv
+              | SVarType SInt, Mod -> L.build_srem
+              | _ -> raise (Failure "compiler bug"))
+            in
+            let build_sub_div_mod = (function
+                [e1; e2] -> linstr (build_expr builder env e1) (build_expr builder env e2) "val" builder
+              | _ -> raise (Failure "compiler bug"))
+            in
+            build_sub_div_mod exprs
+          | I2d -> L.build_sitofp (build_expr builder env (List.hd exprs))
               (ltype_of_styp SDouble) "double" builder
           | D2i -> L.build_fptosi (build_expr builder env (List.hd exprs))
               (ltype_of_styp SInt) "int" builder
