@@ -4,8 +4,8 @@ module S = Sast
 open Sast
 
 type sfunc_decl = {
-    styp : typ;
-    stype_list: typ list;
+    styp : styp;
+    stype_list: styp list;
     sformal_list : string list;
     sbody : sexpr;
 }
