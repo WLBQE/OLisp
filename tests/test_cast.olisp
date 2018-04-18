@@ -1,0 +1,5 @@
+(define (int i) 1)
+(define (double d) 2.1)
+
+(print (i2d i))
+(print (d2i d))
