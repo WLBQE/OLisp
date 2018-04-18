@@ -1,3 +1,9 @@
+(define (int i) 1)
+(define (double do) 2.1)
+
+(print (i2d i))
+(print (d2i do))
+
 (print (+ (begin (print 1) 1) (begin (print 2) 2) (begin (print 3) 3)))
 
 (define (double a) (+ -1.0 2.2))

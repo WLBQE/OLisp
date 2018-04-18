@@ -9,28 +9,33 @@ let translate (sym, cls, stoplevels) =
   let i8_t = L.i8_type context in
   let i1_t = L.i1_type context in
   let double_t = L.double_type context in
-  (*let void_t = L.void_type context in*)
+  let void_t = L.void_type context in
   let the_module = L.create_module context "OLisp" in
   let rec ltype_of_styp = function
       SInt -> i32_t
     | SDouble -> double_t
     | SBool -> i1_t
     | SString -> L.pointer_type i8_t
-    | _ -> raise (Failure "to be implemented")
-  in
-  (*let rec ltype_of_sret_typ = function
+    | SLambda (typs, ret) -> L.pointer_type (L.function_type (ltype_of_sret_typ ret)
+        (Array.of_list (List.map ltype_of_styp typs)))
+    | SList typ -> raise (Failure "to be implemented: list")
+    | SClass name -> raise (Failure "to be implemented: class")
+  and
+  ltype_of_sret_typ = function
       SVarType typ -> ltype_of_styp typ
     | SBuiltInTyp builtin -> raise (Failure "compiler bug")
     | SVoid -> void_t
-  in*)
+  in
   let global_vars =
     let add_global_var mp (name, typ) =
       let init = match typ with
-          SDouble -> L.const_float (ltype_of_styp typ) 0.0
-        | SString -> L.const_null (ltype_of_styp typ)
-        | _ -> L.const_int (ltype_of_styp typ) 0
+          SInt | SBool -> L.const_int (ltype_of_styp typ) 0
+        | SDouble -> L.const_float (ltype_of_styp typ) 0.0
+        | SString | SLambda _ -> L.const_null (ltype_of_styp typ)
+        | _ -> raise (Failure "to be implemented")
       in
-      StringMap.add name (L.define_global name init the_module) mp in
+      StringMap.add name (L.define_global name init the_module) mp
+    in
     List.fold_left add_global_var StringMap.empty (StringMap.bindings sym)
   in
   let rec lookup name = function
@@ -52,12 +57,28 @@ let translate (sym, cls, stoplevels) =
     let false_str = L.build_global_stringptr "false\n" "false" builder in
     let bool_str = L.define_global "bool"
       (L.const_array (L.pointer_type i8_t) [|false_str; true_str|]) the_module in
-    let rec build_expr builder env (_, e) = (match e with
+    let rec build_expr builder env (t, e) = (match e with
         SLit i -> L.const_int i32_t i
       | SDoubleLit d -> L.const_float_of_string double_t d
       | SBoolLit b -> L.const_int i1_t (if b then 1 else 0)
       | SStringLit s -> L.build_global_stringptr s "str" builder
       | SId id -> L.build_load (lookup id env) id builder
+      | SLambdaExpr (typs, ret, formals, expr) -> let lamb_function =
+          L.define_function "lambda" (L.element_type (ltype_of_sret_typ t)) the_module in
+        let lamb_builder = L.builder_at_end context (L.entry_block lamb_function) in
+        let params = Array.to_list (L.params lamb_function) in
+        let add_formal mp (typ, name) param =
+          let () = L.set_value_name name param in
+          let local = L.build_alloca (ltype_of_styp typ) name lamb_builder in
+          let _ = L.build_store param local lamb_builder in
+          StringMap.add name local mp
+        in
+        let sym' = List.fold_left2 add_formal StringMap.empty (List.combine typs formals) params in
+        let _ = (match ret with
+            SVoid -> L.build_ret_void lamb_builder
+          | _ -> L.build_ret (build_expr lamb_builder (sym' :: env) expr) lamb_builder)
+        in
+        lamb_function
       | SCall (lamb, exprs) -> (match lamb with
           (SBuiltInTyp builtin, _) -> (match builtin with
             Add | Mult | And | Or -> let (typ, _) = List.hd exprs in
@@ -130,7 +151,8 @@ let translate (sym, cls, stoplevels) =
               | _ -> raise (Failure "compiler bug"))
             "printf" builder
           | _ -> raise (Failure "to be implemented: built-in"))
-        | (SVarType (SLambda _), _) -> raise (Failure "to be implemented: lambda expressions")
+        | (SVarType (SLambda _), _) -> let lamb' = (build_expr builder env lamb) in
+          L.build_call lamb' (Array.of_list (List.map (build_expr builder env) exprs)) "call" builder
         | _ -> raise (Failure "compiler bug"))
       | _ -> raise (Failure "To be implemented"))
     in

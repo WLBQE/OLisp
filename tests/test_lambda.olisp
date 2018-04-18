@@ -1,0 +1,9 @@
+(define (bool n) false)
+(define (int func) 0)
+(define (double num) 2.2)
+
+(define ((int -> int) foo) (lambda (int -> int) (n) (+ n 1)))
+(print (foo 2))
+
+(define (((int -> int) int -> int) bar) (lambda ((int -> int) int -> int) (func num) (func num)))
+(print (bar foo 5))
