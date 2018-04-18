@@ -26,6 +26,24 @@ let translate (sym, cls, stoplevels) =
     | S.SDouble -> float_t
     | S.SList(typ) -> L.array_type (ltype_of_typ typ) init_list_size in
 
+  let globals =
+    let get_global lst checked_item = match checked_item with
+        SBind(typ, name, expr) -> match typ with
+                                    SLambda(_,_) -> lst
+                                  | _ -> (typ, name) :: lst
+      | _ -> lst
+    in List.fold_left get_global [] stoplevels
+  in
+
+  let global_vars =
+    let global_var m (typ, name) =
+      let init = match typ with
+          S.SDouble -> L.const_float (ltype_of_typ typ) 0.0
+        | _ -> L.const_int (ltype_of_typ typ) 0
+      in StringMap.add name (L.define_global name init the_module) m in
+    List.fold_left global_var StringMap.empty globals
+  in
+
   let printf_t : L.lltype = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let printf_func : L.llvalue = L.declare_function "printf" printf_t the_module in
   (* not sure why the fuck i32_t should be the return type of print_t*)
