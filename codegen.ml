@@ -28,9 +28,9 @@ let translate (sym, cls, stoplevels) =
 
   let globals =
     let get_global lst checked_item = match checked_item with
-        SBind(typ, name, expr) -> match typ with
+        SBind(typ, name, expr) -> (match typ with
                                     SLambda(_,_) -> lst
-                                  | _ -> (typ, name) :: lst
+                                  | _ -> (typ, name) :: lst)
       | _ -> lst
     in List.fold_left get_global [] stoplevels
   in
