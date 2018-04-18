@@ -83,27 +83,110 @@ let translate (sym, cls, stoplevels) =
     in
     List.fold_left function_decl StringMap.empty functions in
 
+
   let build_function_body fdecl = match fdecl with
-      (name, SLambdaExpr(typ_list, ret_typ, formal_list, expr)) ->
-        let (the_function, _) =
-          StringMap.find name function_decls in
-        let builder =
-          L.builder_at_end context (L.entry_block the_function) in
-        let int_format_str =
-          L.build_global_stringptr "%d\n" "fmt" builder
-        and float_format_str =
-          L.build_global_stringptr "%g\n" "fmt" builder in
-        let add_formals m (typ, name) param = L.set_value_name name param;
+    (name, SLambdaExpr(typ_list, ret_typ, formal_list, expr)) ->
+      let (the_function, _) = StringMap.find name function_decls in
+      let builder = L.builder_at_end context (L.entry_block the_function) in
+      let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
+      and float_format_str = L.build_global_stringptr "%g\n" "fmt" builder in
+      let local_vars =
+        let add_formals m (typ, name) param =
+          let () = L.set_value_name name param in
           let local = L.build_alloca (ltype_of_typ typ) name builder in
           let _ = L.build_store param local builder in StringMap.add name local m in
         let formal_intact_list =
-          let zip_typ_name lst typ name = (typ, name) :: lst in
-          List.fold_left2 zip_typ_name [] typ_list formal_list in
-        List.fold_left2 add_formals StringMap.empty formal_intact_list (Array.to_list (L.params the_function))
-      | _ -> raise (Failure ("You Fucked Up"))
-  in
+          (let zip_typ_name lst typ name = (typ, name) :: lst in
+          List.fold_left2 zip_typ_name [] typ_list formal_list) in
+        List.fold_left2 add_formals StringMap.empty formal_intact_list (Array.to_list (L.params the_function)) in
+      let lookup name = try StringMap.find name local_vars
+              with Not_found -> StringMap.find name global_vars in
+      let rec expr builder ((_, e) : sexpr) = match e with
+          SLit i -> L.const_int i32_t i
+        | SDoubleLit l -> L.const_float_of_string float_t l
+        | SBoolLit b -> L.const_int i1_t (if b then 1 else 0)
+        (*| SStringLit ->*)
+        (*| SId s -> L.build_load (lookup s) s builder
+        | SMemId*)
+        | SCall ((SBuiltInTyp A.Print, SBuiltIn A.Print), [exp]) ->
+          let (t, _) = exp in
+          if t = SVarType SDouble then
+            L.build_call printf_func [| float_format_str ; (expr builder exp) |] "printf" builder
+          else if t = SVarType SString then
+            raise (Failure "To be implemented")
+          else
+            L.build_call printf_func [| int_format_str ; (expr builder exp) |] "printf" builder
+        | SCall ((SBuiltInTyp A.Add, SBuiltIn A.Add), [e1; e2]) ->
+          let (t, _) = e1 and e1' = expr builder e1 and e2' = expr builder e2 in
+          if t = SVarType SDouble then L.build_fadd e1' e2' "tmp" builder
+          else L.build_add e1' e2' "tmp" builder
+        | SCall ((SBuiltInTyp A.Sub, SBuiltIn A.Sub), [e1; e2]) ->
+          let (t, _) = e1 and e1' = expr builder e1 and e2' = expr builder e2 in
+          if t = SVarType SDouble then L.build_fsub e1' e2' "tmp" builder
+          else L.build_sub e1' e2' "tmp" builder
+        | SCall ((SBuiltInTyp A.Mult, SBuiltIn A.Mult), [e1; e2]) ->
+          let (t, _) = e1 and e1' = expr builder e1 and e2' = expr builder e2 in
+          if t = SVarType SDouble then L.build_fmul e1' e2' "tmp" builder
+          else L.build_mul e1' e2' "tmp" builder
+        | SCall ((SBuiltInTyp A.Div, SBuiltIn A.Div), [e1; e2]) ->
+          let (t, _) = e1 and e1' = expr builder e1 and e2' = expr builder e2 in
+          if t = SVarType SDouble then L.build_fdiv e1' e2' "tmp" builder
+          else L.build_sdiv e1' e2' "tmp" builder
+        (*| SCall ((SBuiltInTyp A.Mod, SBuiltIn A.Mod), [e1; e2]) ->
+          let e1' = expr builder e1 and e2' = expr builder e2 in
+          L.builder.build_srem e1' e2' "tmp" builder*)
+        | SCall ((SBuiltInTyp A.Eq, SBuiltIn A.Eq), [e1; e2]) ->
+          let (t, _) = e1 and e1' = expr builder e1 and e2' = expr builder e2 in
+          if t = SVarType SDouble then L.build_fcmp L.Fcmp.Oeq e1' e2' "tmp" builder
+          else if t = SVarType SString then  raise (Failure "To be implemented")
+          else L.build_icmp L.Icmp.Eq e1' e2' "tmp" builder
+        | SCall ((SBuiltInTyp A.Neq, SBuiltIn A.Neq), [e1; e2]) ->
+          let (t, _) = e1 and e1' = expr builder e1 and e2' = expr builder e2 in
+          if t = SVarType SDouble then L.build_fcmp L.Fcmp.One e1' e2' "tmp" builder
+          else if t = SVarType SString then raise (Failure "To be implemented")
+          else L.build_icmp L.Icmp.Ne e1' e2' "tmp" builder
+        | SCall ((SBuiltInTyp A.Lt, SBuiltIn A.Lt), [e1; e2]) ->
+          let (t, _) = e1 and e1' = expr builder e1 and e2' = expr builder e2 in
+          if t = SVarType SDouble then L.build_fcmp L.Fcmp.Olt e1' e2' "tmp" builder
+          else L.build_icmp L.Icmp.Slt e1' e2' "tmp" builder
+        | SCall ((SBuiltInTyp A.Gt, SBuiltIn A.Gt), [e1; e2]) ->
+          let (t, _) = e1 and e1' = expr builder e1 and e2' = expr builder e2 in
+          if t = SVarType SDouble then L.build_fcmp L.Fcmp.Ogt e1' e2' "tmp" builder
+          else L.build_icmp L.Icmp.Sgt e1' e2' "tmp" builder
+        | SCall ((SBuiltInTyp A.Leq, SBuiltIn A.Leq), [e1; e2]) ->
+          let (t, _) = e1 and e1' = expr builder e1 and e2' = expr builder e2 in
+          if t = SVarType SDouble then L.build_fcmp L.Fcmp.Ole e1' e2' "tmp" builder
+          else L.build_icmp L.Icmp.Sle e1' e2' "tmp" builder
+        | SCall ((SBuiltInTyp A.Geq, SBuiltIn A.Geq), [e1; e2]) ->
+          let (t, _) = e1 and e1' = expr builder e1 and e2' = expr builder e2 in
+          if t = SVarType SDouble then L.build_fcmp L.Fcmp.Oge e1' e2' "tmp" builder
+          else L.build_icmp L.Icmp.Sge e1' e2' "tmp" builder
+        | SCall (lambda, arg) ->
+            let (fdef, fdecl) =
+              match lambda with
+                (ret_typ, sx) -> match sx with
+                                  SId(id) -> StringMap.find id function_decls
+              | _ -> raise (Failure "Anonymous function call To be implemented")
+            in
+            let llargs = List.rev (List.map (expr builder) (List.rev arg)) in
+            let result = (match fdecl with
+                            (name, SLambdaExpr(typ_list, ret_typ, formal_list, expr)) -> match ret_typ with
+                                                                                          SVoid -> ""
+                                                                                        | _ -> "_result") in
+            L.build_call fdef (Array.of_list llargs) result builder
+        | _ -> raise (Failure "To be implemented")
+      in
+      let rec toplevel builder = function
+        SExpr e -> match fdecl with
+                  (name, SLambdaExpr(typ_list, ret_typ, formal_list, expression)) -> match ret_typ with
+                                                                                SVoid -> L.build_ret_void builder
+                                                                              | _ -> L.build_ret (expr builder e) builder in ()
+      | _ -> raise (Failure "Shouldn't be seeing this")
+    in
+    List.iter build_function_body functions;
+    the_module
 
-  let build_toplevel top =
+  (*let build_toplevel top =
     let main_ty = L.function_type void_t [||] in
     let the_function = L.define_function "main" main_ty the_module in
     let builder = L.builder_at_end context (L.entry_block the_function) in
@@ -119,4 +202,4 @@ let translate (sym, cls, stoplevels) =
       | s -> raise (Failure "To be implemented")
     in ignore(toplevel builder top)
   in List.iter build_toplevel stoplevels;
-  the_module
+  the_module*)
