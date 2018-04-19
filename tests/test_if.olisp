@@ -1,6 +1,9 @@
 (define (int three) 3)
 (define (int five) 5)
+(define (bool b) true)
 
 (if (> three five)
   (print "3 > 5")
   (print "3 <= 5"))
+
+(print (if b "b is true" "b is false"))

@@ -77,9 +77,10 @@ let translate (sym, cls, stoplevels) =
           StringMap.add name local mp
         in
         let sym' = List.fold_left2 add_formal StringMap.empty (List.combine typs formals) params in
-        let _ = let (func, sym) = env in (match ret with
-            SVoid -> ignore (build_expr lamb_builder (func, (sym' :: sym)) expr); L.build_ret_void lamb_builder
-          | _ -> L.build_ret (build_expr lamb_builder (func, (sym' :: sym)) expr) lamb_builder)
+        let _ = let (_, sym) = env in (match ret with
+            SVoid -> ignore (build_expr lamb_builder (lamb_function, (sym' :: sym)) expr);
+            L.build_ret_void lamb_builder
+          | _ -> L.build_ret (build_expr lamb_builder (lamb_function, (sym' :: sym)) expr) lamb_builder)
         in
         lamb_function
       | SCall (lamb, exprs) -> (match lamb with
@@ -148,20 +149,32 @@ let translate (sym, cls, stoplevels) =
           | If -> (match exprs with
               [pred; e_then; e_else] -> let (func, _) = env in
               let bool_val = build_expr builder env pred in
-              let result = L.build_alloca (ltype_of_sret_typ t) "result" builder in
+              let result = (match t with
+                  SVoid -> L.const_int i1_t 0
+                | _ -> L.build_alloca (ltype_of_sret_typ t) "result" builder)
+              in
               let merge_bb = L.append_block context "merge" func in
               let then_bb = L.append_block context "then" func in
               let then_builder = L.builder_at_end context then_bb in
               let then_expr = build_expr then_builder env e_then in
-              let _ = L.build_store then_expr result then_builder in
+              let () = (match t with
+                  SVoid -> ()
+                | _ -> ignore (L.build_store then_expr result then_builder))
+              in
               let _ = L.build_br merge_bb then_builder in
               let else_bb = L.append_block context "else" func in
               let else_builder = L.builder_at_end context else_bb in
               let else_expr = build_expr else_builder env e_else in
-              let _ = L.build_store else_expr result else_builder in
+              let () = (match t with
+                  SVoid -> ()
+                | _ -> ignore (L.build_store else_expr result else_builder))
+              in
               let _ = L.build_br merge_bb else_builder in
               let _ = L.build_cond_br bool_val then_bb else_bb builder in
-              L.build_load result "val" builder
+              let () = L.position_builder (L.instr_begin merge_bb) builder in
+              (match t with
+                  SVoid -> result
+                | _ -> L.build_load result "val" builder)
             | _ -> raise (Failure "compiler bug"))
           | Begin -> List.hd (List.rev (List.map (build_expr builder env) exprs))
           | Print -> L.build_call printf_func (let e = List.hd exprs in match e with
