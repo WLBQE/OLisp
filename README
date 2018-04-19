@@ -17,7 +17,42 @@ Test results will be printed to stdout, and any test failure will be logged in
 'test_all.log'
 
 
-10 test programs
+Test programs
+
+1. test_print.olisp (positive)
+In the previous deliverable, our print function can only print integers, and the
+program can only have one expression. Now, olisp can print function is fully
+implemented, so it can print integers, doubles, booleans and strings. One
+program can also have multiple expressions.
+
+2. test_define.olisp (positive)
+This test tests name binding and identifier lookup. It binds values to names,
+and invoke the print function by those names.
+
+3. test_begin.olisp (positive)
+This test tests the begin function in OLisp. The begin function evaluates all
+arguments in order, and returns the value of the last argument.
+
+4. test_arithmetic.olisp (positive)
+This test tests arithmetic operations in OLisp, including casts between integers
+and doubles, and arithmetic operators (+, -, *, /, %).
+
+5. test_logical.olisp (positive)
+This test tests logical operations in OLisp, including logical operators (and,
+or, not), and comparison operators (=, !=, <, >, <=, >=). Logical operators
+accept booleans. All comparison operators accept integers and doubles. In
+addition, = and != operators also accept booleans and strings. The comparison of
+strings is implemented using external function 'strcmp'.
+
+6. test_if.olisp (positive)
+This test tests the conditional expression 'if'. Like in OCaml, 'if' in OLisp is
+an expression. It is the only thing in OLisp that is lazy-evaluated, meaning the
+else expression will not be evaluated if the predicate is true, and vice versa.
+
+7. test_lambda.olisp (positive)
+This test tests lambda expressions in OLisp. As an functional language, lambda
+expression is a core feature of OLisp. Both recursion and first-class functions
+are tested.
 
 8. fail_add.olisp (negative)
 In OLisp, built-in lambda '+' (i.e. add operator) can only be applied to two or
