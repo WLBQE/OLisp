@@ -13,7 +13,7 @@ tests=(
 	test_begin
 	test_arithmetic
 	test_logical
-	test_strcmp
+	test_if
 	test_lambda
 )
 

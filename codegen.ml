@@ -32,7 +32,8 @@ let translate (sym, cls, stoplevels) =
           SInt | SBool -> L.const_int (ltype_of_styp typ) 0
         | SDouble -> L.const_float (ltype_of_styp typ) 0.0
         | SString | SLambda _ -> L.const_null (ltype_of_styp typ)
-        | _ -> raise (Failure "to be implemented")
+        | SList _ -> raise (Failure "to be implemented: list")
+        | SClass _ -> raise (Failure "to be implemented: class")
       in
       StringMap.add name (L.define_global name init the_module) mp
     in
@@ -62,7 +63,9 @@ let translate (sym, cls, stoplevels) =
       | SDoubleLit d -> L.const_float_of_string double_t d
       | SBoolLit b -> L.const_int i1_t (if b then 1 else 0)
       | SStringLit s -> L.build_global_stringptr s "str" builder
-      | SId id -> L.build_load (lookup id env) id builder
+      | SId id -> let (_, sym) = env in L.build_load (lookup id sym) id builder
+      | SMemId (names, name) -> raise (Failure "to be implemented: class")
+      | SLst (typ, exprs) -> raise (Failure "to be implemented: list")
       | SLambdaExpr (typs, ret, formals, expr) -> let lamb_function =
           L.define_function "lambda" (L.element_type (ltype_of_sret_typ t)) the_module in
         let lamb_builder = L.builder_at_end context (L.entry_block lamb_function) in
@@ -74,9 +77,9 @@ let translate (sym, cls, stoplevels) =
           StringMap.add name local mp
         in
         let sym' = List.fold_left2 add_formal StringMap.empty (List.combine typs formals) params in
-        let _ = (match ret with
-            SVoid -> ignore (build_expr lamb_builder (sym' :: env) expr); L.build_ret_void lamb_builder
-          | _ -> L.build_ret (build_expr lamb_builder (sym' :: env) expr) lamb_builder)
+        let _ = let (func, sym) = env in (match ret with
+            SVoid -> ignore (build_expr lamb_builder (func, (sym' :: sym)) expr); L.build_ret_void lamb_builder
+          | _ -> L.build_ret (build_expr lamb_builder (func, (sym' :: sym)) expr) lamb_builder)
         in
         lamb_function
       | SCall (lamb, exprs) -> (match lamb with
@@ -94,8 +97,8 @@ let translate (sym, cls, stoplevels) =
             let rec build_multivar = (function
                 hd :: [e] -> let arg1 = (build_expr builder env hd) in
                 linstr arg1 (build_expr builder env e) "val" builder
-              | hd :: (h :: t) -> let arg1 = (build_expr builder env hd) in
-                linstr arg1 (build_multivar (h :: t)) "val" builder
+              | hd :: (h :: tl) -> let arg1 = (build_expr builder env hd) in
+                linstr arg1 (build_multivar (h :: tl)) "val" builder
               | _ -> raise (Failure "compiler bug"))
             in
             build_multivar exprs
@@ -136,10 +139,30 @@ let translate (sym, cls, stoplevels) =
                       [|(build_expr builder env e1); (build_expr builder env e2)|] "strcmp" builder) "cmp" builder
                   | _ -> raise (Failure "compiler bug")) exprs
               | _ -> raise (Failure "compiler bug"))
+          | Not -> L.build_not (build_expr builder env (List.hd exprs)) "not" builder
           | I2d -> L.build_sitofp (build_expr builder env (List.hd exprs))
               (ltype_of_styp SDouble) "double" builder
           | D2i -> L.build_fptosi (build_expr builder env (List.hd exprs))
               (ltype_of_styp SInt) "int" builder
+          | Cons | Car | Cdr | Append | Empty -> raise (Failure "to be implemented: list")
+          | If -> (match exprs with
+              [pred; e_then; e_else] -> let (func, _) = env in
+              let bool_val = build_expr builder env pred in
+              let result = L.build_alloca (ltype_of_sret_typ t) "result" builder in
+              let merge_bb = L.append_block context "merge" func in
+              let then_bb = L.append_block context "then" func in
+              let then_builder = L.builder_at_end context then_bb in
+              let then_expr = build_expr then_builder env e_then in
+              let _ = L.build_store then_expr result then_builder in
+              let _ = L.build_br merge_bb then_builder in
+              let else_bb = L.append_block context "else" func in
+              let else_builder = L.builder_at_end context else_bb in
+              let else_expr = build_expr else_builder env e_else in
+              let _ = L.build_store else_expr result else_builder in
+              let _ = L.build_br merge_bb else_builder in
+              let _ = L.build_cond_br bool_val then_bb else_bb builder in
+              L.build_load result "val" builder
+            | _ -> raise (Failure "compiler bug"))
           | Begin -> List.hd (List.rev (List.map (build_expr builder env) exprs))
           | Print -> L.build_call printf_func (let e = List.hd exprs in match e with
                 (SVarType SInt, _) -> [|int_format_str; build_expr builder env e|]
@@ -149,21 +172,20 @@ let translate (sym, cls, stoplevels) =
                   "bool_str_ptr" builder) "bool_str" builder|]
               | (SVarType SString, _) -> [|string_format_str; build_expr builder env e|]
               | _ -> raise (Failure "compiler bug"))
-            "printf" builder
-          | _ -> raise (Failure "to be implemented: built-in"))
+            "printf" builder)
         | (SVarType (SLambda (_, ret)), _) -> let lamb' = (build_expr builder env lamb) in
           L.build_call lamb' (Array.of_list (List.map (build_expr builder env) exprs))
             (match ret with SVoid -> "" | _ -> "call") builder
         | _ -> raise (Failure "compiler bug"))
-      | _ -> raise (Failure "To be implemented"))
+      | SBuiltIn _ -> raise (Failure "compiler bug"))
     in
     let rec build_toplevel = function
         SExpr (typ, expr) -> (match expr with
-            SCall _ -> ignore (build_expr builder [global_vars] (typ, expr))
+            SCall _ -> ignore (build_expr builder (main_function, [global_vars]) (typ, expr))
           | _ -> ())
-      | SBind (typ, name, expr) -> let expr' = build_expr builder [global_vars] expr in
+      | SBind (typ, name, expr) -> let expr' = build_expr builder (main_function, [global_vars]) expr in
         ignore (L.build_store expr' (StringMap.find name global_vars) builder)
-      | SDeclClass _ -> raise (Failure "to be implemented: class declaration")
+      | SDeclClass _ -> raise (Failure "to be implemented: class")
     in
     List.iter build_toplevel stoplevels; L.build_ret (L.const_int i32_t 0) builder
   in

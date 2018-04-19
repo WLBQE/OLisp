@@ -1,0 +1,6 @@
+(define (int three) 3)
+(define (int five) 5)
+
+(if (> three five)
+  (print "3 > 5")
+  (print "3 <= 5"))

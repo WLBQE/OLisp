@@ -4,6 +4,7 @@
 (define (bool d) true)
 (define (bool d2) false)
 
+(print (not (> a b)))
 (print (and (> a b) (< b c) d))
 (print (or (> a b) (< b c) d))
 
