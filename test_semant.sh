@@ -10,7 +10,7 @@ tests=(
 	parser_p3
 	parser_p4
 	parser_p5
-	pass_print
+	parser_p6
 )
 
 total=0
