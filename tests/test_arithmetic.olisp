@@ -1,0 +1,21 @@
+(define (int i) 1)
+(define (double do) 2.1)
+
+(print (i2d i))
+(print (d2i do))
+
+(print (+ (begin (print 1) 1) (begin (print 2) 2) (begin (print 3) 3)))
+
+(define (double a) (+ -1.0 2.2))
+(define (double b) 1.5)
+(print (+ a b))
+(print (* a b))
+(print (- a b))
+
+(define (int c) 25)
+(define (int d) 10)
+(define (int e) 1)
+(print (* c d (+ e (+ e 1 1))))
+(print (- c d))
+(print (/ c d))
+(print (% c d))

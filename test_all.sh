@@ -8,7 +8,13 @@ LOG="test_all.log"
 TESTDIR="tests/"
 
 tests=(
-	test_print_1
+	test_print
+	test_define
+	test_begin
+	test_arithmetic
+	test_logical
+	test_if
+	test_lambda
 )
 
 fails=(
