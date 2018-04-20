@@ -34,7 +34,7 @@ for pass in "${tests[@]}"; do
 	printf "testing %s..." "$pass"
 	printf "test %s\\n" "$pass" >> "$LOG"
 	if "$OLISP" "$TESTDIR$pass.olisp" > "$TESTDIR/$pass.ll" 2>> "$LOG"; then
-		if "$LLC" "$TESTDIR$pass.ll" > "$TESTDIR$pass.s" 2>> "$LOG"; then
+		if "$LLC" "$TESTDIR$pass.ll" "-o=$TESTDIR$pass.s" 2>> "$LOG"; then
 			if "$CC" -o "$TESTDIR$pass.exe" "$TESTDIR$pass.s" 2>> "$LOG"; then
 				"$TESTDIR$pass.exe" > "$TESTDIR$pass.result" 2>> "$LOG"
 				if diff "$TESTDIR$pass.out" "$TESTDIR$pass.result" >> "$LOG" 2>&1; then
