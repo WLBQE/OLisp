@@ -1,4 +1,5 @@
 module L = Llvm
+open Ast
 open Sast
 
 module StringMap = Map.Make(String)
