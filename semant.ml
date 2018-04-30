@@ -19,8 +19,7 @@ let check toplevels =
     | String -> SString
     | List typ -> SList (check_type cls typ)
     | Lambda (typs, ret) -> SLambda (List.map (check_type cls) typs, check_ret_type cls ret)
-    | Class name -> if StringMap.mem name cls then SClass name
-      else raise (Failure ("invalid type: " ^ name))
+    | Class name -> if StringMap.mem name cls then SClass name else raise (Failure ("invalid type: " ^ name))
   and check_ret_type cls = function
       VarType typ -> SVarType (check_type cls typ)
     | BuiltInTyp builtin -> SBuiltInTyp builtin
@@ -150,12 +149,12 @@ let check toplevels =
         | _ -> (StringMap.add name typ sym, cls,
           let expr' = check_expr [sym] cls expr in SBind (confirm_type typ expr', name, expr') :: checked))
     | DeclClass (name, memlist, constrlist) ->
-      let add_member (sym, vars, smembers) (name_mem, typ) =
+      let add_member (vars, smembers) (name_mem, typ) =
           if StringMap.mem name_mem vars then raise (Failure ("member " ^ name_mem ^ " is already declared"))
           else let typ = check_type cls typ in
-            (sym, StringMap.add name_mem typ vars, (name_mem, typ) :: smembers)
+            (StringMap.add name_mem typ vars, (name_mem, typ) :: smembers)
       in
-      let (sym', vars, smembers) = List.fold_left add_member (sym, StringMap.empty, []) memlist in
+      let (vars, smembers) = List.fold_left add_member (StringMap.empty, []) memlist in
       let check_constructor sym =
         let list_equal l1 l2 = try List.map2 (fun a b ->
           if a <> b then raise (Failure ("class " ^ name ^ ": invalid constructor"))) l1 l2
@@ -165,7 +164,7 @@ let check toplevels =
         let typ_list = List.map (fun id -> StringMap.find id vars) constrlist in
         StringMap.add name (SLambda (typ_list, SVarType (SClass name))) sym
       in
-      (check_constructor sym', StringMap.add name (vars, constrlist) cls,
+      (check_constructor sym, StringMap.add name (vars, constrlist) cls,
         SDeclClass (name, smembers, constrlist) :: checked)
     | Expr expr -> (sym, cls, SExpr (check_expr [sym] cls expr) :: checked)
   in
