@@ -151,8 +151,7 @@ let check toplevels =
     | DeclClass (name, memlist, constrlist) ->
       let add_member (vars, smembers) (name_mem, typ) =
           if StringMap.mem name_mem vars then raise (Failure ("member " ^ name_mem ^ " is already declared"))
-          else let typ = check_type cls typ in
-            (StringMap.add name_mem typ vars, (name_mem, typ) :: smembers)
+          else let typ = check_type cls typ in (StringMap.add name_mem typ vars, (name_mem, typ) :: smembers)
       in
       let (vars, smembers) = List.fold_left add_member (StringMap.empty, []) memlist in
       let check_constructor sym =
