@@ -12,32 +12,40 @@ let translate (sym, cls, stoplevels) =
   let double_t = L.double_type context in
   let void_t = L.void_type context in
   let the_module = L.create_module context "OLisp" in
+  let structs = List.fold_left (fun mp (name, _) ->
+    StringMap.add name (L.named_struct_type context name) mp) StringMap.empty (StringMap.bindings cls)
+  in
   let rec ltype_of_styp = function
       SInt -> i32_t
     | SDouble -> double_t
     | SBool -> i1_t
     | SString -> L.pointer_type i8_t
-    | SLambda (typs, ret) -> L.pointer_type (L.function_type (ltype_of_sret_typ ret)
-        (Array.of_list (List.map ltype_of_styp typs)))
+    | SLambda (typs, ret) ->
+      L.pointer_type (L.function_type (ltype_of_sret_typ ret) (Array.of_list (List.map ltype_of_styp typs)))
+    | SClass name -> L.pointer_type (StringMap.find name structs)
     | SList typ -> raise (Failure "to be implemented: list")
-    | SClass name -> raise (Failure "to be implemented: class")
   and
   ltype_of_sret_typ = function
       SVarType typ -> ltype_of_styp typ
-    | SBuiltInTyp builtin -> raise (Failure "compiler bug")
+    | SBuiltInTyp _ -> raise (Failure "compiler bug")
     | SVoid -> void_t
   in
-  let global_vars =
-    let add_global_var mp (name, typ) =
-      let init = match typ with
-          SInt | SBool -> L.const_int (ltype_of_styp typ) 0
-        | SDouble -> L.const_float (ltype_of_styp typ) 0.0
-        | SString | SLambda _ -> L.const_null (ltype_of_styp typ)
-        | SList _ -> raise (Failure "to be implemented: list")
-        | SClass _ -> raise (Failure "to be implemented: class")
-      in
-      StringMap.add name (L.define_global name init the_module) mp
+  let () =
+    let add_class name =
+      let (vars, constrlist) = StringMap.find name cls in
+      let var_types = List.map ltype_of_styp (List.map (fun var_name -> StringMap.find var_name vars) constrlist) in
+      L.struct_set_body (L.element_type (ltype_of_styp (SClass name))) (Array.of_list var_types) false
     in
+    List.iter add_class (fst (List.split (StringMap.bindings cls)))
+  in
+  let global_vars =
+    let rec get_init_val typ = match typ with
+        SInt | SBool -> L.const_int (ltype_of_styp typ) 0
+      | SDouble -> L.const_float (ltype_of_styp typ) 0.0
+      | SString | SLambda _ | SClass _ -> L.const_null (ltype_of_styp typ)
+      | SList _ -> raise (Failure "to be implemented: list")
+    in
+    let add_global_var mp (name, typ) = StringMap.add name (L.define_global name (get_init_val typ) the_module) mp in
     List.fold_left add_global_var StringMap.empty (StringMap.bindings sym)
   in
   let rec lookup name = function
@@ -48,7 +56,7 @@ let translate (sym, cls, stoplevels) =
   let printf_func = L.declare_function "printf" printf_t the_module in
   let strcmp_t = L.function_type i32_t [|L.pointer_type i8_t; L.pointer_type i8_t|] in
   let strcmp_func = L.declare_function "strcmp" strcmp_t the_module in
-  let build_program (sym, cls, stoplevels) =
+  let build_program (sym, stoplevels) =
     let main_ty = L.function_type i32_t [||] in
     let main_function = L.define_function "main" main_ty the_module in
     let builder = L.builder_at_end context (L.entry_block main_function) in
@@ -72,7 +80,6 @@ let translate (sym, cls, stoplevels) =
         let lamb_builder = L.builder_at_end context (L.entry_block lamb_function) in
         let params = Array.to_list (L.params lamb_function) in
         let add_formal mp (typ, name) param =
-          let () = L.set_value_name name param in
           let local = L.build_alloca (ltype_of_styp typ) name lamb_builder in
           let _ = L.build_store param local lamb_builder in
           StringMap.add name local mp
@@ -199,8 +206,23 @@ let translate (sym, cls, stoplevels) =
           | _ -> ())
       | SBind (typ, name, expr) -> let expr' = build_expr builder (main_function, [global_vars]) expr in
         ignore (L.build_store expr' (StringMap.find name global_vars) builder)
-      | SDeclClass _ -> raise (Failure "to be implemented: class")
+      | SDeclClass (name, _, _) -> let (vars, constrlist) = StringMap.find name cls in
+        let bindings = List.map (fun var_name -> (StringMap.find var_name vars, var_name)) constrlist in
+        let constructor_type = (L.element_type (L.element_type (L.type_of (StringMap.find name global_vars)))) in
+        let constructor = L.define_function ("constructor_" ^ name) constructor_type the_module in
+        let constructor_builder = L.builder_at_end context (L.entry_block constructor) in
+        let return_value = L.build_malloc (StringMap.find name structs) "return" constructor_builder in
+        let params = Array.to_list (L.params constructor) in
+        let add_member i (typ, name) param =
+          let ptr = L.build_struct_gep return_value i name constructor_builder in
+          let _ = L.build_store param ptr constructor_builder in
+          i + 1
+        in
+        let _ = List.fold_left2 add_member 0 bindings params in
+        let _ = L.build_ret return_value constructor_builder in
+        ignore (L.build_store constructor (StringMap.find name global_vars) builder)
     in
-    List.iter build_toplevel stoplevels; L.build_ret (L.const_int i32_t 0) builder
+    let () = List.iter build_toplevel stoplevels in
+    L.build_ret (L.const_int i32_t 0) builder
   in
-  ignore (build_program (sym, cls, stoplevels)); the_module
+  ignore (build_program (sym, stoplevels)); the_module
