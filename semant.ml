@@ -98,47 +98,47 @@ let check toplevels =
         [] -> raise (Failure ("undeclared identifier: " ^ id))
       | sym :: rest -> try StringMap.find id sym with Not_found -> type_of_id id rest
     in
-  function
-    Lit l -> (SVarType SInt, SLit l)
-  | DoubleLit l -> (SVarType SDouble, SDoubleLit l)
-  | BoolLit l -> (SVarType SBool, SBoolLit l)
-  | StringLit l -> (SVarType SString, SStringLit l)
-  | BuiltIn builtin -> (SBuiltInTyp builtin, SBuiltIn builtin)
-  | Id name -> (SVarType (type_of_id name syms), SId name)
-  | MemId (first, middle, last) -> (SVarType (
-    let rec get_combined_cls_name outer_name = (function
-        [] -> outer_name
-      | hd :: tl -> let (vars, _) = try StringMap.find outer_name cls with Not_found ->
-          raise (Failure (outer_name ^ " is not a class")) in
-        let hd_type = try StringMap.find hd vars with Not_found ->
-          raise (Failure ("class " ^ outer_name ^ " does not have member " ^ hd)) in
-        (match hd_type with
-            SClass name -> get_combined_cls_name name tl
-          | _ -> raise (Failure ("member " ^ hd ^ " is not a class"))))
-    in
-    let cls_name = get_combined_cls_name (let id = first in
-      match type_of_id id syms with
-          SClass name -> name
-        | _ -> raise (Failure (id ^ " is not a class"))) middle
-    in
-    let (vars, _) = StringMap.find cls_name cls in
-    try StringMap.find last vars with Not_found ->
-      raise (Failure ("class " ^ cls_name ^ " does not have member " ^ last))),
-    SMemId (first, middle, last))
-  | Call (lamb, args) -> check_call (check_expr syms cls lamb) (List.map (check_expr syms cls) args)
-  | Lst (typ, exprs) -> let typ = check_type cls typ in
-      let exprs' = List.map (check_expr syms cls) exprs in
-      let _ = List.map (confirm_type typ) exprs' in
-      (SVarType (SList typ), SLst (typ, exprs'))
-  | LambdaExpr (typs, ret, formals, expr) -> let typs = List.map (check_type cls) typs in
-    let ret = check_ret_type cls ret in (SVarType (SLambda (typs, ret)),
-      let sym' = (try List.fold_left2 (fun sym typ formal -> if StringMap.mem formal cls
-        then raise (Failure (formal ^ " is a class name")) else StringMap.add formal typ sym)
-        StringMap.empty typs formals
-        with Invalid_argument _ -> raise (Failure "lambda expression: invalid number of formals"))
+    function
+      Lit l -> (SVarType SInt, SLit l)
+    | DoubleLit l -> (SVarType SDouble, SDoubleLit l)
+    | BoolLit l -> (SVarType SBool, SBoolLit l)
+    | StringLit l -> (SVarType SString, SStringLit l)
+    | BuiltIn builtin -> (SBuiltInTyp builtin, SBuiltIn builtin)
+    | Id name -> (SVarType (type_of_id name syms), SId name)
+    | MemId (first, middle, last) ->
+      let get_class_name outer id =
+        let enclosing = List.hd (List.rev outer) in
+        let (vars, _) = StringMap.find enclosing cls in
+        let id_type = try StringMap.find id vars with Not_found ->
+          raise (Failure ("class " ^ enclosing ^ " does not have member " ^ id)) in
+        (match id_type with
+            SClass name -> outer @ [name]
+          | _ -> raise (Failure ("member " ^ id ^ " is not a class")))
       in
-      let expr' = check_expr (sym' :: syms) cls expr in
-      SLambdaExpr (typs, confirm_ret_type ret expr', formals, expr'))
+      let first_classname = (match type_of_id first syms with
+          SClass name -> name
+        | _ -> raise (Failure (first ^ " is not a class")))
+      in
+      let cls_names = List.fold_left get_class_name [first_classname] middle in
+      let cls_name = List.hd (List.rev cls_names) in
+      let (vars, _) = StringMap.find cls_name cls in
+      let typ = try StringMap.find last vars with Not_found ->
+        raise (Failure ("class " ^ cls_name ^ " does not have member " ^ last)) in
+      (SVarType typ, SMemId ((first, first_classname), List.combine middle (List.tl cls_names), last))
+    | Call (lamb, args) -> check_call (check_expr syms cls lamb) (List.map (check_expr syms cls) args)
+    | Lst (typ, exprs) -> let typ = check_type cls typ in
+        let exprs' = List.map (check_expr syms cls) exprs in
+        let _ = List.map (confirm_type typ) exprs' in
+        (SVarType (SList typ), SLst (typ, exprs'))
+    | LambdaExpr (typs, ret, formals, expr) -> let typs = List.map (check_type cls) typs in
+      let ret = check_ret_type cls ret in (SVarType (SLambda (typs, ret)),
+        let sym' = (try List.fold_left2 (fun sym typ formal -> if StringMap.mem formal cls
+          then raise (Failure (formal ^ " is a class name")) else StringMap.add formal typ sym)
+          StringMap.empty typs formals
+          with Invalid_argument _ -> raise (Failure "lambda expression: invalid number of formals"))
+        in
+        let expr' = check_expr (sym' :: syms) cls expr in
+        SLambdaExpr (typs, confirm_ret_type ret expr', formals, expr'))
   in
   let check_toplevel (sym, cls, checked) = function
       Bind (typ, name, expr) -> if StringMap.mem name sym
@@ -150,8 +150,8 @@ let check toplevels =
           let expr' = check_expr [sym] cls expr in SBind (confirm_type typ expr', name, expr') :: checked))
     | DeclClass (name, memlist, constrlist) ->
       let add_member (vars, smembers) (name_mem, typ) =
-          if StringMap.mem name_mem vars then raise (Failure ("member " ^ name_mem ^ " is already declared"))
-          else let typ = check_type cls typ in (StringMap.add name_mem typ vars, (name_mem, typ) :: smembers)
+        if StringMap.mem name_mem vars then raise (Failure ("member " ^ name_mem ^ " is already declared"))
+        else let typ = check_type cls typ in (StringMap.add name_mem typ vars, (name_mem, typ) :: smembers)
       in
       let (vars, smembers) = List.fold_left add_member (StringMap.empty, []) memlist in
       let check_constructor sym =

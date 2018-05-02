@@ -18,4 +18,11 @@
 (define (bar b) (bar a 3))
 (define (blah c) (blah true b))
 
-(print "done")
+(print a.a)
+(print a.b)
+(print a.c)
+(print b.a)
+(print b.f.c)
+(print c.a)
+(print c.b.a)
+(print c.b.f.b)

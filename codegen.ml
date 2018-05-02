@@ -76,11 +76,16 @@ let translate (sym_semant, cls, stoplevels) =
       | SBoolLit b -> L.const_int i1_t (if b then 1 else 0)
       | SStringLit s -> L.build_global_stringptr s "str" builder
       | SId id -> let (_, sym) = env in L.build_load (lookup id sym) id builder
-      | SMemId (first, middle, last) -> let struct_index_of_member member class_name =
-          (StringMap.find member (snd (StringMap.find class_name structs)))
+      | SMemId ((first, first_typ), middle, last) -> let (members, class_names) = List.split middle in
+        let (_, sym) = env in
+        let first_ptr = L.build_load (lookup first sym) first builder in
+        let struct_idx_of_mem member class_name = (StringMap.find member (snd (StringMap.find class_name structs))) in
+        let process_name ptr member class_name =
+          let index = struct_idx_of_mem member class_name in
+          let new_ptr = L.build_struct_gep ptr index (class_name ^ "." ^ member) builder in
+          L.build_load new_ptr (class_name ^ "." ^ member) builder
         in
-        ignore (struct_index_of_member "" ""); (* TODO *)
-        raise (Failure "to be implemented: class")
+        List.fold_left2 process_name first_ptr (members @ [last]) (first_typ :: class_names)
       | SLst (typ, exprs) -> raise (Failure "to be implemented: list")
       | SLambdaExpr (typs, ret, formals, expr) -> let lamb_function =
           L.define_function "lambda" (L.element_type (ltype_of_sret_typ t)) the_module in
