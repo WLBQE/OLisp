@@ -3,6 +3,8 @@ _build/
 *.byte
 *.native
 
+*.o
+
 tests/*.ll
 tests/*.s
 tests/*.exe

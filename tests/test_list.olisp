@@ -1,0 +1,5 @@
+(define ([int] a) (list int 1 2))
+(define ([int] b) (list int))
+
+(print (empty a))
+(print (empty b))

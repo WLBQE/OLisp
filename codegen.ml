@@ -11,6 +11,9 @@ let translate (sym_semant, cls, stoplevels) =
   let i1_t = L.i1_type context in
   let double_t = L.double_type context in
   let void_t = L.void_type context in
+  let void_ptr_t = L.pointer_type i8_t in
+  let list_struct_t = L.named_struct_type context "list" in
+  let () = L.struct_set_body list_struct_t [|void_ptr_t; L.pointer_type list_struct_t|] false in
   let the_module = L.create_module context "OLisp" in
   let structs =
     let add_struct mp (name, (_, constrlist)) =
@@ -28,7 +31,7 @@ let translate (sym_semant, cls, stoplevels) =
     | SLambda (typs, ret) ->
       L.pointer_type (L.function_type (ltype_of_sret_typ ret) (Array.of_list (List.map ltype_of_styp typs)))
     | SClass name -> L.pointer_type (fst (StringMap.find name structs))
-    | SList typ -> raise (Failure "to be implemented: list")
+    | SList _ -> L.pointer_type list_struct_t
   and
   ltype_of_sret_typ = function
       SVarType typ -> ltype_of_styp typ
@@ -44,11 +47,7 @@ let translate (sym_semant, cls, stoplevels) =
     List.iter add_class (fst (List.split (StringMap.bindings cls)))
   in
   let global_vars =
-    let rec get_init_val typ = match typ with
-        SInt | SBool -> L.const_int (ltype_of_styp typ) 0
-      | SDouble -> L.const_float (ltype_of_styp typ) 0.0
-      | SString | SLambda _ | SClass _ | SList _ -> L.const_null (ltype_of_styp typ)
-    in
+    let get_init_val typ = L.const_null (ltype_of_styp typ) in
     let add_global_var mp (name, typ) = StringMap.add name (L.define_global name (get_init_val typ) the_module) mp in
     List.fold_left add_global_var StringMap.empty (StringMap.bindings sym_semant)
   in
@@ -60,6 +59,8 @@ let translate (sym_semant, cls, stoplevels) =
   let printf_func = L.declare_function "printf" printf_t the_module in
   let strcmp_t = L.function_type i32_t [|L.pointer_type i8_t; L.pointer_type i8_t|] in
   let strcmp_func = L.declare_function "strcmp" strcmp_t the_module in
+  let make_list_t = L.var_arg_function_type void_ptr_t [|i32_t|] in
+  let make_list_func = L.declare_function "make_list" make_list_t the_module in
   let build_program stoplevels =
     let main_ty = L.function_type i32_t [||] in
     let main_function = L.define_function "main" main_ty the_module in
@@ -86,7 +87,17 @@ let translate (sym_semant, cls, stoplevels) =
           L.build_load new_ptr (class_name ^ "." ^ member) builder
         in
         List.fold_left2 process_name first_ptr (members @ [last]) (first_typ :: class_names)
-      | SLst (typ, exprs) -> raise (Failure "to be implemented: list")
+      | SLst (typ, exprs) ->
+        let add_arg ptrs expr =
+          let arg = build_expr builder env expr in
+          let ptr = L.build_malloc (L.type_of arg) "" builder in
+          let _ = L.build_store arg ptr builder in
+          ptr :: ptrs
+        in
+        let ptrs = List.rev (List.fold_left add_arg [] exprs) in
+        let length = L.const_int i32_t (List.length exprs) in
+        let call = L.build_call make_list_func (Array.of_list (length :: ptrs)) "list" builder in
+        L.build_pointercast call (ltype_of_sret_typ t) "list" builder
       | SLambdaExpr (typs, ret, formals, expr) -> let lamb_function =
           L.define_function "lambda" (L.element_type (ltype_of_sret_typ t)) the_module in
         let lamb_builder = L.builder_at_end context (L.entry_block lamb_function) in
@@ -156,16 +167,16 @@ let translate (sym_semant, cls, stoplevels) =
                 | _ -> raise (Failure "compiler bug"))
                 in
                 (function
-                    [e1; e2] -> comp (L.const_int i32_t 0) (L.build_call strcmp_func
-                      [|(build_expr builder env e1); (build_expr builder env e2)|] "strcmp" builder) "cmp" builder
+                    [e1; e2] -> let arg1 = (build_expr builder env e1) in
+                    comp (L.const_int i32_t 0)
+                      (L.build_call strcmp_func [|arg1; (build_expr builder env e2)|] "strcmp" builder) "cmp" builder
                   | _ -> raise (Failure "compiler bug")) exprs
               | _ -> raise (Failure "compiler bug"))
           | A.Not -> L.build_not (build_expr builder env (List.hd exprs)) "not" builder
-          | A.I2d -> L.build_sitofp (build_expr builder env (List.hd exprs))
-              (ltype_of_styp SDouble) "double" builder
-          | A.D2i -> L.build_fptosi (build_expr builder env (List.hd exprs))
-              (ltype_of_styp SInt) "int" builder
-          | A.Cons | A.Car | A.Cdr | A.Append | A.Empty -> raise (Failure "to be implemented: list")
+          | A.I2d -> L.build_sitofp (build_expr builder env (List.hd exprs)) (ltype_of_styp SDouble) "double" builder
+          | A.D2i -> L.build_fptosi (build_expr builder env (List.hd exprs)) (ltype_of_styp SInt) "int" builder
+          | A.Cons | A.Car | A.Cdr | A.Append -> raise (Failure "to be implemented: list")
+          | A.Empty -> L.build_is_null (build_expr builder env (List.hd exprs)) "empty" builder
           | A.If -> (match exprs with
               [pred; e_then; e_else] -> let (func, _) = env in
               let bool_val = build_expr builder env pred in

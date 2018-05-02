@@ -16,6 +16,7 @@ tests=(
 	test_if
 	test_lambda
 	test_class
+	test_list
 )
 
 fails=(
@@ -28,6 +29,8 @@ fails=(
 total=0
 passed=0
 
+trap : SIGSEGV
+
 rm -f "$LOG"
 printf "\\n"
 
@@ -37,9 +40,9 @@ for pass in "${tests[@]}"; do
 	printf "test %s\\n" "$pass" >> "$LOG"
 	if "$OLISP" "$TESTDIR$pass.olisp" > "$TESTDIR/$pass.ll" 2>> "$LOG"; then
 		if "$LLC" "$TESTDIR$pass.ll" "-o=$TESTDIR$pass.s" 2>> "$LOG"; then
-			if "$CC" -o "$TESTDIR$pass.exe" "$TESTDIR$pass.s" 2>> "$LOG"; then
-				"$TESTDIR$pass.exe" > "$TESTDIR$pass.result" 2>> "$LOG"
-				if diff "$TESTDIR$pass.out" "$TESTDIR$pass.result" >> "$LOG" 2>&1; then
+			if "$CC" -o "$TESTDIR$pass.exe" "$TESTDIR$pass.s" list.o 2>> "$LOG"; then
+				if "$TESTDIR$pass.exe" > "$TESTDIR$pass.result" 2>&1 &&
+					diff "$TESTDIR$pass.out" "$TESTDIR$pass.result" >> "$LOG" 2>&1; then
 					printf "passed\\n"
 					((++passed))
 				else
