@@ -44,3 +44,8 @@
 (print first.bar)
 (print second.blah)
 (print third.blah)
+
+(define ([[int]] h) (list [int] a b d))
+(print (car (car h)))
+(print (car (car (cdr (cdr h)))))
+(print (empty (car (cdr h))))
