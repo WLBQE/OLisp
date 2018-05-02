@@ -55,16 +55,18 @@ let translate (sym_semant, cls, stoplevels) =
       var :: rest -> (try StringMap.find name var with Not_found -> lookup name rest)
     | [] -> raise (Failure "compiler bug")
   in
-  let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
-  let printf_func = L.declare_function "printf" printf_t the_module in
-  let strcmp_t = L.function_type i32_t [|L.pointer_type i8_t; L.pointer_type i8_t|] in
-  let strcmp_func = L.declare_function "strcmp" strcmp_t the_module in
-  let make_list_t = L.var_arg_function_type void_ptr_t [|i32_t|] in
-  let make_list_func = L.declare_function "make_list" make_list_t the_module in
   let build_program stoplevels =
-    let main_ty = L.function_type i32_t [||] in
-    let main_function = L.define_function "main" main_ty the_module in
-    let builder = L.builder_at_end context (L.entry_block main_function) in
+    let main_t = L.function_type i32_t [||] in
+    let main_func = L.define_function "main" main_t the_module in
+    let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
+    let printf_func = L.declare_function "printf" printf_t the_module in
+    let strcmp_t = L.function_type i32_t [|L.pointer_type i8_t; L.pointer_type i8_t|] in
+    let strcmp_func = L.declare_function "strcmp" strcmp_t the_module in
+    let make_list_t = L.var_arg_function_type (L.pointer_type list_struct_t) [|i32_t|] in
+    let make_list_func = L.declare_function "make_list" make_list_t the_module in
+    let list_cons_t = L.function_type void_ptr_t [|void_ptr_t; L.pointer_type list_struct_t|] in
+    let list_cons_func = L.declare_function "list_cons" list_cons_t the_module in
+    let builder = L.builder_at_end context (L.entry_block main_func) in
     let int_format_str = L.build_global_stringptr "%d\n" "i_fmt" builder in
     let double_format_str = L.build_global_stringptr "%g\n" "f_fmt" builder in
     let string_format_str = L.build_global_stringptr "%s\n" "s_fmt" builder in
@@ -157,25 +159,31 @@ let translate (sym_semant, cls, stoplevels) =
                   | SVarType SDouble, A.Geq -> L.build_fcmp L.Fcmp.Oge
                   | _ -> raise (Failure "compiler bug"))
                 in
-                (function
-                    [e1; e2] -> let arg1 = (build_expr builder env e1) in
-                    linstr arg1 (build_expr builder env e2) "val" builder
-                  | _ -> raise (Failure "compiler bug")) exprs
+                let arg1 = (build_expr builder env (List.hd exprs)) in
+                let arg2 = (build_expr builder env (List.hd (List.tl exprs))) in
+                linstr arg1 arg2 "val" builder
               | SVarType SString -> let comp = (match builtin with
                   A.Eq -> L.build_icmp L.Icmp.Eq
                 | A.Neq -> L.build_icmp L.Icmp.Ne
                 | _ -> raise (Failure "compiler bug"))
                 in
-                (function
-                    [e1; e2] -> let arg1 = (build_expr builder env e1) in
-                    comp (L.const_int i32_t 0)
-                      (L.build_call strcmp_func [|arg1; (build_expr builder env e2)|] "strcmp" builder) "cmp" builder
-                  | _ -> raise (Failure "compiler bug")) exprs
+                let arg1 = (build_expr builder env (List.hd exprs)) in
+                let arg2 = (build_expr builder env (List.hd (List.tl exprs))) in
+                comp (L.const_int i32_t 0) (L.build_call strcmp_func [|arg1; arg2|] "strcmp" builder) "cmp" builder
               | _ -> raise (Failure "compiler bug"))
           | A.Not -> L.build_not (build_expr builder env (List.hd exprs)) "not" builder
           | A.I2d -> L.build_sitofp (build_expr builder env (List.hd exprs)) (ltype_of_styp SDouble) "double" builder
           | A.D2i -> L.build_fptosi (build_expr builder env (List.hd exprs)) (ltype_of_styp SInt) "int" builder
-          | A.Cons | A.Car | A.Cdr | A.Append -> raise (Failure "to be implemented: list")
+          | A.Cons -> let hd_val = build_expr builder env (List.hd exprs) in
+            let hd_ptr = L.build_malloc (L.type_of hd_val) "" builder in
+            let _ = L.build_store hd_val hd_ptr builder in
+            let hd = L.build_pointercast hd_ptr void_ptr_t "" builder in
+            let tl = build_expr builder env (List.hd (List.tl exprs)) in
+            let ptr = L.build_call list_cons_func [|(hd); tl|] "cons" builder in
+            L.build_pointercast ptr (ltype_of_sret_typ t) "cons" builder
+          | A.Car
+          | A.Cdr
+          | A.Append -> raise (Failure "to be implemented: list")
           | A.Empty -> L.build_is_null (build_expr builder env (List.hd exprs)) "empty" builder
           | A.If -> (match exprs with
               [pred; e_then; e_else] -> let (func, _) = env in
@@ -225,9 +233,9 @@ let translate (sym_semant, cls, stoplevels) =
     in
     let rec build_toplevel = function
         SExpr (typ, expr) -> (match expr with
-            SCall _ -> ignore (build_expr builder (main_function, [global_vars]) (typ, expr))
+            SCall _ -> ignore (build_expr builder (main_func, [global_vars]) (typ, expr))
           | _ -> ())
-      | SBind (typ, name, expr) -> let expr' = build_expr builder (main_function, [global_vars]) expr in
+      | SBind (typ, name, expr) -> let expr' = build_expr builder (main_func, [global_vars]) expr in
         ignore (L.build_store expr' (StringMap.find name global_vars) builder)
       | SDeclClass (name, _, _) -> let (vars, constrlist) = StringMap.find name cls in
         let bindings = List.map (fun var_name -> (StringMap.find var_name vars, var_name)) constrlist in
