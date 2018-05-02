@@ -1,5 +1,5 @@
 module L = Llvm
-open Ast
+module A = Ast
 open Sast
 
 module StringMap = Map.Make(String)
@@ -100,14 +100,14 @@ let translate (sym_semant, cls, stoplevels) =
         lamb_function
       | SCall (lamb, exprs) -> (match lamb with
           (SBuiltInTyp builtin, _) -> (match builtin with
-            Add | Mult | And | Or -> let (typ, _) = List.hd exprs in
+            A.Add | A.Mult | A.And | A.Or -> let (typ, _) = List.hd exprs in
             let linstr = (match (typ, builtin) with
-                SVarType SInt, Add -> L.build_add
-              | SVarType SDouble, Add -> L.build_fadd
-              | SVarType SInt, Mult -> L.build_mul
-              | SVarType SDouble, Mult -> L.build_fmul
-              | SVarType SBool, And -> L.build_and
-              | SVarType SBool, Or -> L.build_or
+                SVarType SInt, A.Add -> L.build_add
+              | SVarType SDouble, A.Add -> L.build_fadd
+              | SVarType SInt, A.Mult -> L.build_mul
+              | SVarType SDouble, A.Mult -> L.build_fmul
+              | SVarType SBool, A.And -> L.build_and
+              | SVarType SBool, A.Or -> L.build_or
               | _ -> raise (Failure "compiler bug"))
             in
             let rec build_multivar = (function
@@ -118,27 +118,27 @@ let translate (sym_semant, cls, stoplevels) =
               | _ -> raise (Failure "compiler bug"))
             in
             build_multivar exprs
-          | Sub | Div | Mod | Eq | Neq | Lt | Gt | Leq | Geq ->
+          | A.Sub | A.Div | A.Mod | A.Eq | A.Neq | A.Lt | A.Gt | A.Leq | A.Geq ->
             let (typ, _) = List.hd exprs in (match typ with
                 SVarType SInt | SVarType SDouble | SVarType SBool ->
                 let linstr = (match (typ, builtin) with
-                    SVarType SInt, Sub -> L.build_sub
-                  | SVarType SDouble, Sub -> L.build_fsub
-                  | SVarType SInt, Div -> L.build_sdiv
-                  | SVarType SDouble, Div -> L.build_fdiv
-                  | SVarType SInt, Mod -> L.build_srem
-                  | SVarType SInt, Eq | SVarType SBool, Eq -> L.build_icmp L.Icmp.Eq
-                  | SVarType SDouble, Eq -> L.build_fcmp L.Fcmp.Oeq
-                  | SVarType SInt, Neq | SVarType SBool, Neq -> L.build_icmp L.Icmp.Ne
-                  | SVarType SDouble, Neq -> L.build_fcmp L.Fcmp.One
-                  | SVarType SInt, Lt -> L.build_icmp L.Icmp.Slt
-                  | SVarType SDouble, Lt -> L.build_fcmp L.Fcmp.Olt
-                  | SVarType SInt, Gt -> L.build_icmp L.Icmp.Sgt
-                  | SVarType SDouble, Gt -> L.build_fcmp L.Fcmp.Ogt
-                  | SVarType SInt, Leq -> L.build_icmp L.Icmp.Sle
-                  | SVarType SDouble, Leq -> L.build_fcmp L.Fcmp.Ole
-                  | SVarType SInt, Geq -> L.build_icmp L.Icmp.Sge
-                  | SVarType SDouble, Geq -> L.build_fcmp L.Fcmp.Oge
+                    SVarType SInt, A.Sub -> L.build_sub
+                  | SVarType SDouble, A.Sub -> L.build_fsub
+                  | SVarType SInt, A.Div -> L.build_sdiv
+                  | SVarType SDouble, A.Div -> L.build_fdiv
+                  | SVarType SInt, A.Mod -> L.build_srem
+                  | SVarType SInt, A.Eq | SVarType SBool, A.Eq -> L.build_icmp L.Icmp.Eq
+                  | SVarType SDouble, A.Eq -> L.build_fcmp L.Fcmp.Oeq
+                  | SVarType SInt, A.Neq | SVarType SBool, A.Neq -> L.build_icmp L.Icmp.Ne
+                  | SVarType SDouble, A.Neq -> L.build_fcmp L.Fcmp.One
+                  | SVarType SInt, A.Lt -> L.build_icmp L.Icmp.Slt
+                  | SVarType SDouble, A.Lt -> L.build_fcmp L.Fcmp.Olt
+                  | SVarType SInt, A.Gt -> L.build_icmp L.Icmp.Sgt
+                  | SVarType SDouble, A.Gt -> L.build_fcmp L.Fcmp.Ogt
+                  | SVarType SInt, A.Leq -> L.build_icmp L.Icmp.Sle
+                  | SVarType SDouble, A.Leq -> L.build_fcmp L.Fcmp.Ole
+                  | SVarType SInt, A.Geq -> L.build_icmp L.Icmp.Sge
+                  | SVarType SDouble, A.Geq -> L.build_fcmp L.Fcmp.Oge
                   | _ -> raise (Failure "compiler bug"))
                 in
                 (function
@@ -146,8 +146,8 @@ let translate (sym_semant, cls, stoplevels) =
                     linstr arg1 (build_expr builder env e2) "val" builder
                   | _ -> raise (Failure "compiler bug")) exprs
               | SVarType SString -> let comp = (match builtin with
-                  Eq -> L.build_icmp L.Icmp.Eq
-                | Neq -> L.build_icmp L.Icmp.Ne
+                  A.Eq -> L.build_icmp L.Icmp.Eq
+                | A.Neq -> L.build_icmp L.Icmp.Ne
                 | _ -> raise (Failure "compiler bug"))
                 in
                 (function
@@ -155,13 +155,13 @@ let translate (sym_semant, cls, stoplevels) =
                       [|(build_expr builder env e1); (build_expr builder env e2)|] "strcmp" builder) "cmp" builder
                   | _ -> raise (Failure "compiler bug")) exprs
               | _ -> raise (Failure "compiler bug"))
-          | Not -> L.build_not (build_expr builder env (List.hd exprs)) "not" builder
-          | I2d -> L.build_sitofp (build_expr builder env (List.hd exprs))
+          | A.Not -> L.build_not (build_expr builder env (List.hd exprs)) "not" builder
+          | A.I2d -> L.build_sitofp (build_expr builder env (List.hd exprs))
               (ltype_of_styp SDouble) "double" builder
-          | D2i -> L.build_fptosi (build_expr builder env (List.hd exprs))
+          | A.D2i -> L.build_fptosi (build_expr builder env (List.hd exprs))
               (ltype_of_styp SInt) "int" builder
-          | Cons | Car | Cdr | Append | Empty -> raise (Failure "to be implemented: list")
-          | If -> (match exprs with
+          | A.Cons | A.Car | A.Cdr | A.Append | A.Empty -> raise (Failure "to be implemented: list")
+          | A.If -> (match exprs with
               [pred; e_then; e_else] -> let (func, _) = env in
               let bool_val = build_expr builder env pred in
               let result = (match t with
@@ -191,8 +191,8 @@ let translate (sym_semant, cls, stoplevels) =
                   SVoid -> result
                 | _ -> L.build_load result "val" builder)
             | _ -> raise (Failure "compiler bug"))
-          | Begin -> List.hd (List.rev (List.map (build_expr builder env) exprs))
-          | Print -> L.build_call printf_func (let e = List.hd exprs in match e with
+          | A.Begin -> List.hd (List.rev (List.map (build_expr builder env) exprs))
+          | A.Print -> L.build_call printf_func (let e = List.hd exprs in match e with
                 (SVarType SInt, _) -> [|int_format_str; build_expr builder env e|]
               | (SVarType SDouble, _) -> [|double_format_str; build_expr builder env e|]
               | (SVarType SBool, _) -> [|L.build_load (L.build_in_bounds_gep bool_str
