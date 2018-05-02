@@ -9,3 +9,6 @@
 (print (car c))
 (print (car (cdr a)))
 (print (car (cdr c)))
+(print (car (cdr (cdr a))))
+(print (car (cdr (cdr c))))
+(print (car (cdr (cdr (cdr c)))))
