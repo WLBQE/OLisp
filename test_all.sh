@@ -15,12 +15,14 @@ tests=(
 	test_logical
 	test_if
 	test_lambda
+	test_class
 )
 
 fails=(
 	fail_add
 	fail_call
 	fail_define
+	fail_class
 )
 
 total=0

@@ -21,7 +21,7 @@ and sx =
   | SStringLit of string
   | SBuiltIn of built_in
   | SId of string
-  | SMemId of string list * string
+  | SMemId of string * string list * string
   | SCall of sexpr * sexpr list
   | SLst of styp * sexpr list
   | SLambdaExpr of styp list * sret_typ * string list * sexpr
@@ -59,7 +59,7 @@ let rec string_of_sexpr (t, e) =
     | SStringLit slit -> "\"" ^ String.escaped slit ^ "\""
     | SBuiltIn builtin -> string_of_built_in builtin
     | SId id -> id
-    | SMemId (cls, mem) -> List.fold_left (fun str cls -> str ^ cls ^ ".") "" cls ^ mem
+    | SMemId (first, middle, last) -> first ^ "." ^ List.fold_left (fun str name -> str ^ name ^ ".") "" middle ^ last
     | SCall (exp, exps) ->
       "(" ^ string_of_sexpr exp ^ List.fold_left (fun str exp -> str ^ " " ^ string_of_sexpr exp) "" exps ^ ")"
     | SLst (typ, exps) ->

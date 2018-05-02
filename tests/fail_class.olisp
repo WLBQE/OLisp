@@ -1,0 +1,8 @@
+(class foo
+  (member (int a))
+  (member (string b))
+  (constructor a b))
+
+(define (foo f) (foo 2 "hello"))
+
+(print f.c)

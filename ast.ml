@@ -26,7 +26,7 @@ type expr =
   | StringLit of string
   | BuiltIn of built_in
   | Id of string
-  | MemId of string list * string
+  | MemId of string * string list * string
   | Call of expr * expr list
   | Lst of typ * expr list
   | LambdaExpr of typ list * ret_typ * string list * expr
@@ -41,10 +41,8 @@ type toplevel =
 type program = toplevel list
 
 let split_mem_id mem_id =
-  let str_list = List.rev (Str.split (Str.regexp "\\.") mem_id) in
-    match str_list with
-      mem :: obj -> MemId (List.rev obj, mem)
-    | _ -> raise (Failure ("Invalid class member identifier"))
+  let str_list = Str.split (Str.regexp "\\.") mem_id in
+  MemId (List.hd str_list, List.rev (List.tl (List.rev (List.tl str_list))), List.hd (List.rev str_list))
 
 let string_of_built_in = function
     Add -> "+"
@@ -100,7 +98,7 @@ let rec string_of_expr = function
   | StringLit slit -> "\"" ^ String.escaped slit ^ "\""
   | BuiltIn builtin -> string_of_built_in builtin
   | Id id -> id
-  | MemId (cls, mem) -> List.fold_left (fun str cls -> str ^ cls ^ ".") "" cls ^ mem
+  | MemId (first, middle, last) -> first ^ "." ^ List.fold_left (fun str name -> str ^ name ^ ".") "" middle ^ last
   | Call (exp, exps) ->
     "(" ^ string_of_expr exp ^ List.fold_left (fun str exp -> str ^ " " ^ string_of_expr exp) "" exps ^ ")"
   | Lst (typ, exps) ->

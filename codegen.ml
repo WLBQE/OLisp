@@ -4,7 +4,7 @@ open Sast
 
 module StringMap = Map.Make(String)
 
-let translate (sym, cls, stoplevels) =
+let translate (sym_semant, cls, stoplevels) =
   let context  = L.global_context () in
   let i32_t = L.i32_type context in
   let i8_t = L.i8_type context in
@@ -12,8 +12,13 @@ let translate (sym, cls, stoplevels) =
   let double_t = L.double_type context in
   let void_t = L.void_type context in
   let the_module = L.create_module context "OLisp" in
-  let structs = List.fold_left (fun mp (name, _) ->
-    StringMap.add name (L.named_struct_type context name) mp) StringMap.empty (StringMap.bindings cls)
+  let structs =
+    let add_struct mp (name, (_, constrlist)) =
+      let add_member (mp, i) member = (StringMap.add member i mp, i + 1) in
+      let (cmap, _) = List.fold_left add_member (StringMap.empty, 0) constrlist in
+      StringMap.add name ((L.named_struct_type context name), cmap) mp
+    in
+    List.fold_left add_struct StringMap.empty (StringMap.bindings cls)
   in
   let rec ltype_of_styp = function
       SInt -> i32_t
@@ -22,7 +27,7 @@ let translate (sym, cls, stoplevels) =
     | SString -> L.pointer_type i8_t
     | SLambda (typs, ret) ->
       L.pointer_type (L.function_type (ltype_of_sret_typ ret) (Array.of_list (List.map ltype_of_styp typs)))
-    | SClass name -> L.pointer_type (StringMap.find name structs)
+    | SClass name -> L.pointer_type (fst (StringMap.find name structs))
     | SList typ -> raise (Failure "to be implemented: list")
   and
   ltype_of_sret_typ = function
@@ -42,21 +47,20 @@ let translate (sym, cls, stoplevels) =
     let rec get_init_val typ = match typ with
         SInt | SBool -> L.const_int (ltype_of_styp typ) 0
       | SDouble -> L.const_float (ltype_of_styp typ) 0.0
-      | SString | SLambda _ | SClass _ -> L.const_null (ltype_of_styp typ)
-      | SList _ -> raise (Failure "to be implemented: list")
+      | SString | SLambda _ | SClass _ | SList _ -> L.const_null (ltype_of_styp typ)
     in
     let add_global_var mp (name, typ) = StringMap.add name (L.define_global name (get_init_val typ) the_module) mp in
-    List.fold_left add_global_var StringMap.empty (StringMap.bindings sym)
+    List.fold_left add_global_var StringMap.empty (StringMap.bindings sym_semant)
   in
   let rec lookup name = function
-      [] -> raise Not_found
+      [] -> raise (Failure "compiler bug")
     | var :: rest -> try StringMap.find name var with Not_found -> lookup name rest
   in
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let printf_func = L.declare_function "printf" printf_t the_module in
   let strcmp_t = L.function_type i32_t [|L.pointer_type i8_t; L.pointer_type i8_t|] in
   let strcmp_func = L.declare_function "strcmp" strcmp_t the_module in
-  let build_program (sym, stoplevels) =
+  let build_program stoplevels =
     let main_ty = L.function_type i32_t [||] in
     let main_function = L.define_function "main" main_ty the_module in
     let builder = L.builder_at_end context (L.entry_block main_function) in
@@ -65,15 +69,18 @@ let translate (sym, cls, stoplevels) =
     let string_format_str = L.build_global_stringptr "%s\n" "s_fmt" builder in
     let true_str = L.build_global_stringptr "true\n" "true" builder in
     let false_str = L.build_global_stringptr "false\n" "false" builder in
-    let bool_str = L.define_global "bool"
-      (L.const_array (L.pointer_type i8_t) [|false_str; true_str|]) the_module in
+    let bool_str = L.define_global "bool" (L.const_array (L.pointer_type i8_t) [|false_str; true_str|]) the_module in
     let rec build_expr builder env (t, e) = (match e with
         SLit i -> L.const_int i32_t i
       | SDoubleLit d -> L.const_float_of_string double_t d
       | SBoolLit b -> L.const_int i1_t (if b then 1 else 0)
       | SStringLit s -> L.build_global_stringptr s "str" builder
       | SId id -> let (_, sym) = env in L.build_load (lookup id sym) id builder
-      | SMemId (names, name) -> raise (Failure "to be implemented: class")
+      | SMemId (first, middle, last) -> let struct_index_of_member member class_name =
+          (StringMap.find member (snd (StringMap.find class_name structs)))
+        in
+        ignore (struct_index_of_member "" ""); (* TODO *)
+        raise (Failure "to be implemented: class")
       | SLst (typ, exprs) -> raise (Failure "to be implemented: list")
       | SLambdaExpr (typs, ret, formals, expr) -> let lamb_function =
           L.define_function "lambda" (L.element_type (ltype_of_sret_typ t)) the_module in
@@ -86,7 +93,7 @@ let translate (sym, cls, stoplevels) =
         in
         let sym' = List.fold_left2 add_formal StringMap.empty (List.combine typs formals) params in
         let _ = let (_, sym) = env in (match ret with
-            SVoid -> ignore (build_expr lamb_builder (lamb_function, (sym' :: sym)) expr);
+            SVoid -> let _ = build_expr lamb_builder (lamb_function, (sym' :: sym)) expr in
             L.build_ret_void lamb_builder
           | _ -> L.build_ret (build_expr lamb_builder (lamb_function, (sym' :: sym)) expr) lamb_builder)
         in
@@ -211,7 +218,7 @@ let translate (sym, cls, stoplevels) =
         let constructor_type = (L.element_type (L.element_type (L.type_of (StringMap.find name global_vars)))) in
         let constructor = L.define_function ("constructor_" ^ name) constructor_type the_module in
         let constructor_builder = L.builder_at_end context (L.entry_block constructor) in
-        let return_value = L.build_malloc (StringMap.find name structs) "return" constructor_builder in
+        let return_value = L.build_malloc (fst (StringMap.find name structs)) "return" constructor_builder in
         let params = Array.to_list (L.params constructor) in
         let add_member i (typ, name) param =
           let ptr = L.build_struct_gep return_value i name constructor_builder in
@@ -225,4 +232,5 @@ let translate (sym, cls, stoplevels) =
     let () = List.iter build_toplevel stoplevels in
     L.build_ret (L.const_int i32_t 0) builder
   in
-  ignore (build_program (sym, stoplevels)); the_module
+  let _ = build_program stoplevels in
+  the_module

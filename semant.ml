@@ -105,7 +105,7 @@ let check toplevels =
   | StringLit l -> (SVarType SString, SStringLit l)
   | BuiltIn builtin -> (SBuiltInTyp builtin, SBuiltIn builtin)
   | Id name -> (SVarType (type_of_id name syms), SId name)
-  | MemId (names, name) -> (SVarType (
+  | MemId (first, middle, last) -> (SVarType (
     let rec get_combined_cls_name outer_name = (function
         [] -> outer_name
       | hd :: tl -> let (vars, _) = try StringMap.find outer_name cls with Not_found ->
@@ -116,15 +116,15 @@ let check toplevels =
             SClass name -> get_combined_cls_name name tl
           | _ -> raise (Failure ("member " ^ hd ^ " is not a class"))))
     in
-    let cls_name = get_combined_cls_name (let id = List.hd names in
+    let cls_name = get_combined_cls_name (let id = first in
       match type_of_id id syms with
           SClass name -> name
-        | _ -> raise (Failure (id ^ " is not a class"))) (List.tl names)
+        | _ -> raise (Failure (id ^ " is not a class"))) middle
     in
     let (vars, _) = StringMap.find cls_name cls in
-    try StringMap.find name vars with Not_found ->
-      raise (Failure ("class " ^ cls_name ^ " does not have member " ^ name))),
-    SMemId (names, name))
+    try StringMap.find last vars with Not_found ->
+      raise (Failure ("class " ^ cls_name ^ " does not have member " ^ last))),
+    SMemId (first, middle, last))
   | Call (lamb, args) -> check_call (check_expr syms cls lamb) (List.map (check_expr syms cls) args)
   | Lst (typ, exprs) -> let typ = check_type cls typ in
       let exprs' = List.map (check_expr syms cls) exprs in

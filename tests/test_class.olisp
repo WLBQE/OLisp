@@ -1,0 +1,21 @@
+(class foo
+  (member (int a))
+  (member (double b))
+  (member (string c))
+  (constructor a b c))
+
+(class bar
+  (member (int a))
+  (member (foo f))
+  (constructor f a))
+
+(class blah
+  (member (bool a))
+  (member (bar b))
+  (constructor a b))
+
+(define (foo a) (foo 1 1.5 "hello"))
+(define (bar b) (bar a 3))
+(define (blah c) (blah true b))
+
+(print "done")
