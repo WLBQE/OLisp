@@ -12,11 +12,13 @@
 (class blah
   (member (bool a))
   (member (bar b))
-  (constructor a b))
+  (member (foo c))
+  (member (foo d))
+  (constructor a b c d))
 
 (define (foo a) (foo 1 1.5 "hello"))
 (define (bar b) (bar a 3))
-(define (blah c) (blah true b))
+(define (blah c) (blah true b a (foo 10 10.5 "hello again")))
 
 (print a.a)
 (print a.b)
@@ -26,3 +28,6 @@
 (print c.a)
 (print c.b.a)
 (print c.b.f.b)
+(print c.c.c)
+(print c.d.b)
+(print c.d.c)
