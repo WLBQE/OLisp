@@ -32,8 +32,8 @@ let translate (sym_semant, cls, stoplevels) =
   and
   ltype_of_sret_typ = function
       SVarType typ -> ltype_of_styp typ
-    | SBuiltInTyp _ -> raise (Failure "compiler bug")
     | SVoid -> void_t
+    | SBuiltInTyp _ -> raise (Failure "compiler bug")
   in
   let () =
     let add_class name =
@@ -53,8 +53,8 @@ let translate (sym_semant, cls, stoplevels) =
     List.fold_left add_global_var StringMap.empty (StringMap.bindings sym_semant)
   in
   let rec lookup name = function
-      [] -> raise (Failure "compiler bug")
-    | var :: rest -> try StringMap.find name var with Not_found -> lookup name rest
+      var :: rest -> (try StringMap.find name var with Not_found -> lookup name rest)
+    | [] -> raise (Failure "compiler bug")
   in
   let printf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let printf_func = L.declare_function "printf" printf_t the_module in
