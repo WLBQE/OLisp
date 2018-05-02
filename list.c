@@ -35,11 +35,21 @@ struct list* list_cdr(struct list* lst) {
 	return lst->next;
 }
 
-struct list* list_append(struct list* l1, struct list* l2) {
+static struct list* append2(struct list* l1, struct list* l2) {
 	struct list** current = &l1;
 	while (*current) {
 		current = &((**current).next);
 	}
 	*current = l2;
 	return l1;
+}
+
+struct list* list_append(struct list* l1, struct list* l2, int len, ...) {
+	va_list args;
+	struct list* ret = append2(l1, l2);
+	va_start(args, len);
+	for (int i = 0; i < len; ++i)
+		append2(ret, va_arg(args, struct list*));
+	va_end(args);
+	return ret;
 }

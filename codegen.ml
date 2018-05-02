@@ -70,6 +70,9 @@ let translate (sym_semant, cls, stoplevels) =
     let list_car_func = L.declare_function "list_car" list_car_t the_module in
     let list_cdr_t = L.function_type (L.pointer_type list_struct_t) [|L.pointer_type list_struct_t|] in
     let list_cdr_func = L.declare_function "list_cdr" list_cdr_t the_module in
+    let list_append_t = L.var_arg_function_type (L.pointer_type list_struct_t)
+      [|L.pointer_type list_struct_t; L.pointer_type list_struct_t; i32_t|] in
+    let list_append_func = L.declare_function "list_append" list_append_t the_module in
     let builder = L.builder_at_end context (L.entry_block main_func) in
     let int_format_str = L.build_global_stringptr "%d\n" "i_fmt" builder in
     let double_format_str = L.build_global_stringptr "%g\n" "f_fmt" builder in
