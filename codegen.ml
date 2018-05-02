@@ -70,8 +70,7 @@ let translate (sym_semant, cls, stoplevels) =
     let list_car_func = L.declare_function "list_car" list_car_t the_module in
     let list_cdr_t = L.function_type (L.pointer_type list_struct_t) [|L.pointer_type list_struct_t|] in
     let list_cdr_func = L.declare_function "list_cdr" list_cdr_t the_module in
-    let list_append_t = L.var_arg_function_type (L.pointer_type list_struct_t)
-      [|L.pointer_type list_struct_t; L.pointer_type list_struct_t; i32_t|] in
+    let list_append_t = L.var_arg_function_type (L.pointer_type list_struct_t) [|i32_t|] in
     let list_append_func = L.declare_function "list_append" list_append_t the_module in
     let builder = L.builder_at_end context (L.entry_block main_func) in
     let int_format_str = L.build_global_stringptr "%d\n" "i_fmt" builder in
@@ -97,13 +96,13 @@ let translate (sym_semant, cls, stoplevels) =
         in
         List.fold_left2 process_name first_ptr (members @ [last]) (first_typ :: class_names)
       | SLst (typ, exprs) ->
-        let add_arg ptrs expr =
+        let add_arg expr =
           let arg = build_expr builder env expr in
           let ptr = L.build_malloc (L.type_of arg) "" builder in
           let _ = L.build_store arg ptr builder in
-          ptr :: ptrs
+          ptr
         in
-        let ptrs = List.fold_left add_arg [] exprs in
+        let ptrs = List.map add_arg exprs in
         let length = L.const_int i32_t (List.length exprs) in
         let call = L.build_call make_list_func (Array.of_list (length :: ptrs)) "list" builder in
         L.build_pointercast call (ltype_of_sret_typ t) "list" builder
@@ -194,7 +193,9 @@ let translate (sym_semant, cls, stoplevels) =
             L.build_load typ_ptr "car" builder
           | A.Cdr -> let lst = build_expr builder env (List.hd exprs) in
             L.build_call list_cdr_func [|lst|] "cdr" builder
-          | A.Append -> raise (Failure "to be implemented: list")
+          | A.Append -> let lists = List.map (build_expr builder env) exprs in
+            let length = L.const_int i32_t (List.length lists) in
+            L.build_call list_append_func (Array.of_list (length :: lists)) "append" builder
           | A.Empty -> L.build_is_null (build_expr builder env (List.hd exprs)) "empty" builder
           | A.If -> (match exprs with
               [pred; e_then; e_else] -> let (func, _) = env in

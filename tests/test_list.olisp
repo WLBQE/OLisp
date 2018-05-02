@@ -2,6 +2,9 @@
 (define ([int] b) (list int))
 (define ([double] c) (cons 1.5 (list double 1.2 1.3 1.4)))
 (define ([int] d) (cons 12 b))
+(define ([int] d1) (append b d))
+(define ([int] e) (list int 5 6 7))
+(define ([int] f) (append d a e))
 
 (print (empty a))
 (print (empty b))
@@ -13,5 +16,31 @@
 (print (car (cdr (cdr a))))
 (print (car (cdr (cdr c))))
 (print (car (cdr (cdr (cdr c)))))
+(print (empty (cdr (cdr (cdr (cdr c))))))
 (print (empty (cdr d)))
 (print (car d))
+(print (empty (cdr d1)))
+(print (car d1))
+(print (car f))
+(print (car (cdr f)))
+(print (car (cdr (cdr f))))
+(print (car (cdr (cdr (cdr f)))))
+(print (car (cdr (cdr (cdr (cdr f))))))
+(print (car (cdr (cdr (cdr (cdr (cdr f)))))))
+(print (car (cdr (cdr (cdr (cdr (cdr (cdr f))))))))
+(print (empty (cdr (cdr (cdr (cdr (cdr (cdr (cdr f)))))))))
+
+(class foo
+  (member (int bar))
+  (member (string blah))
+  (constructor bar blah))
+
+(define ([foo] g) (list foo (foo 1 "one") (foo 2 "two") (foo 3 "three")))
+
+(define (foo first) (car g))
+(define (foo second) (car (cdr g)))
+(define (foo third) (car (cdr (cdr g))))
+
+(print first.bar)
+(print second.blah)
+(print third.blah)

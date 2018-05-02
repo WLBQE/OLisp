@@ -13,18 +13,19 @@ struct list* make_list(int len, ...) {
 	va_start(args, len);
 	for (int i = 0; i < len; ++i) {
 		*current = malloc(sizeof(struct list));
-		(**current).element = va_arg(args, int*);
+		(**current).element = va_arg(args, void*);
 		current = &((**current).next);
+		*current = NULL;
 	}
 	va_end(args);
 	return begin;
 }
 
 struct list* list_cons(void* hd, struct list* tl) {
-	struct list* new_list = malloc(sizeof(struct list));
-	new_list->element = hd;
-	new_list->next = tl;
-	return new_list;
+	struct list* new_node = malloc(sizeof(struct list));
+	new_node->element = hd;
+	new_node->next = tl;
+	return new_node;
 }
 
 void* list_car(struct list* lst) {
@@ -35,21 +36,21 @@ struct list* list_cdr(struct list* lst) {
 	return lst->next;
 }
 
-static struct list* append2(struct list* l1, struct list* l2) {
-	struct list** current = &l1;
-	while (*current) {
-		current = &((**current).next);
-	}
-	*current = l2;
-	return l1;
-}
-
-struct list* list_append(struct list* l1, struct list* l2, int len, ...) {
+struct list* list_append(int len, ...) {
 	va_list args;
-	struct list* ret = append2(l1, l2);
+	struct list* begin = NULL;
+	struct list** current = &begin;
 	va_start(args, len);
-	for (int i = 0; i < len; ++i)
-		append2(ret, va_arg(args, struct list*));
+	for (int i = 0; i < len; ++i) {
+		struct list* l = va_arg(args, struct list*);
+		while (l) {
+			*current = malloc(sizeof(struct list));
+			(**current).element = l->element;
+			current = &((**current).next);
+			*current = NULL;
+			l = l->next;
+		}
+	}
 	va_end(args);
-	return ret;
+	return begin;
 }
