@@ -66,6 +66,10 @@ let translate (sym_semant, cls, stoplevels) =
     let make_list_func = L.declare_function "make_list" make_list_t the_module in
     let list_cons_t = L.function_type void_ptr_t [|void_ptr_t; L.pointer_type list_struct_t|] in
     let list_cons_func = L.declare_function "list_cons" list_cons_t the_module in
+    let list_car_t = L.function_type void_ptr_t [|L.pointer_type list_struct_t|] in
+    let list_car_func = L.declare_function "list_car" list_car_t the_module in
+    let list_cdr_t = L.function_type (L.pointer_type list_struct_t) [|L.pointer_type list_struct_t|] in
+    let list_cdr_func = L.declare_function "list_cdr" list_cdr_t the_module in
     let builder = L.builder_at_end context (L.entry_block main_func) in
     let int_format_str = L.build_global_stringptr "%d\n" "i_fmt" builder in
     let double_format_str = L.build_global_stringptr "%g\n" "f_fmt" builder in
@@ -96,7 +100,7 @@ let translate (sym_semant, cls, stoplevels) =
           let _ = L.build_store arg ptr builder in
           ptr :: ptrs
         in
-        let ptrs = List.rev (List.fold_left add_arg [] exprs) in
+        let ptrs = List.fold_left add_arg [] exprs in
         let length = L.const_int i32_t (List.length exprs) in
         let call = L.build_call make_list_func (Array.of_list (length :: ptrs)) "list" builder in
         L.build_pointercast call (ltype_of_sret_typ t) "list" builder
@@ -181,8 +185,12 @@ let translate (sym_semant, cls, stoplevels) =
             let tl = build_expr builder env (List.hd (List.tl exprs)) in
             let ptr = L.build_call list_cons_func [|(hd); tl|] "cons" builder in
             L.build_pointercast ptr (ltype_of_sret_typ t) "cons" builder
-          | A.Car
-          | A.Cdr
+          | A.Car -> let lst = build_expr builder env (List.hd exprs) in
+            let ptr = L.build_call list_car_func [|lst|] "car" builder in
+            let typ_ptr = L.build_pointercast ptr (L.pointer_type (ltype_of_sret_typ t)) "car" builder in
+            L.build_load typ_ptr "car" builder
+          | A.Cdr -> let lst = build_expr builder env (List.hd exprs) in
+            L.build_call list_cdr_func [|lst|] "cdr" builder
           | A.Append -> raise (Failure "to be implemented: list")
           | A.Empty -> L.build_is_null (build_expr builder env (List.hd exprs)) "empty" builder
           | A.If -> (match exprs with

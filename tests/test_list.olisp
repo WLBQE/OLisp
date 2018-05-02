@@ -1,7 +1,11 @@
-(define ([int] a) (list int 1 2))
+(define ([int] a) (list int 11 22 33))
 (define ([int] b) (list int))
 (define ([double] c) (cons 1.5 (list double 1.2 1.3 1.4)))
 
 (print (empty a))
 (print (empty b))
 (print (empty c))
+(print (car a))
+(print (car c))
+(print (car (cdr a)))
+(print (car (cdr c)))
