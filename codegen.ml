@@ -243,7 +243,7 @@ let translate (sym_semant, cls, stoplevels) =
         | _ -> raise (Failure "compiler bug"))
       | SBuiltIn _ -> raise (Failure "compiler bug"))
     in
-    let rec build_toplevel = function
+    let build_toplevel = function
         SExpr (typ, expr) -> (match expr with
             SCall _ -> ignore (build_expr builder (main_func, [global_vars]) (typ, expr))
           | _ -> ())
