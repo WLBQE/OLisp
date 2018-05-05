@@ -69,7 +69,7 @@ let rec string_of_sexpr (t, e) =
       "(lambda (" ^ string_of_styp_list typ_list ^ "-> " ^ string_of_sret_typ ret_typ ^ ") ("
         ^ string_of_formal_list formal_list ^ ") " ^ string_of_sexpr expr ^ ")") ^ ")"
 
-let rec string_of_smember (name, typ) = "(member (" ^ string_of_styp typ ^ " " ^ name ^ "))"
+let string_of_smember (name, typ) = "(member (" ^ string_of_styp typ ^ " " ^ name ^ "))"
 
 let string_of_stop_level = function
     SBind (typ, name, expr) -> "(define (" ^ string_of_styp typ ^ " " ^ name ^ ") " ^ string_of_sexpr expr ^ ")\n"
