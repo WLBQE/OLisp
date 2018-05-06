@@ -266,11 +266,9 @@ let translate (sym_semant, cls, stoplevels) =
       | SBuiltIn _ -> raise (Failure "compiler bug")
     in
     let build_toplevel = function
-        SExpr (typ, expr) -> (match expr with
-            SCall _ -> ignore (build_expr builder (main_func, [global_vars]) (typ, expr))
-          | _ -> ())
+        SExpr (typ, expr) -> build_expr builder (main_func, [global_vars]) (typ, expr)
       | SBind (typ, name, expr) -> let expr' = build_expr builder (main_func, [global_vars]) expr in
-        ignore (L.build_store expr' (StringMap.find name global_vars) builder)
+        L.build_store expr' (StringMap.find name global_vars) builder
       | SDeclClass (name, _, _) -> let vars, constrlist = StringMap.find name cls in
         let bindings = List.map (fun var_name -> (StringMap.find var_name vars, var_name)) constrlist in
         let constructor_type = (L.element_type (L.element_type (L.type_of (StringMap.find name global_vars)))) in
@@ -285,9 +283,9 @@ let translate (sym_semant, cls, stoplevels) =
         in
         let _ = List.fold_left2 add_member 0 bindings params in
         let _ = L.build_ret return_value constructor_builder in
-        ignore (L.build_store constructor (StringMap.find name global_vars) builder)
+        L.build_store constructor (StringMap.find name global_vars) builder
     in
-    let () = List.iter build_toplevel stoplevels in
+    let _ = List.map build_toplevel stoplevels in
     L.build_ret (L.const_int i32_t 0) builder
   in
   let _ = build_program stoplevels in
