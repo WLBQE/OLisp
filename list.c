@@ -21,22 +21,22 @@ struct list* make_list(int len, ...) {
 	return begin;
 }
 
-struct list* list_cons(void* hd, struct list* tl) {
+struct list* cons(void* hd, struct list* tl) {
 	struct list* new_node = malloc(sizeof(struct list));
 	new_node->element = hd;
 	new_node->next = tl;
 	return new_node;
 }
 
-void* list_car(struct list* lst) {
+void* car(struct list* lst) {
 	return lst->element;
 }
 
-struct list* list_cdr(struct list* lst) {
+struct list* cdr(struct list* lst) {
 	return lst->next;
 }
 
-struct list* list_append(int len, ...) {
+struct list* append(int len, ...) {
 	va_list args;
 	struct list* begin = NULL;
 	struct list** current = &begin;

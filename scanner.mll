@@ -1,10 +1,12 @@
-{ open Parser
-  type status = { mutable is_new: bool }
-  let s = { is_new = true }
-  let check status =
-    if status.is_new then () else raise (Failure "Syntax error");
-    status.is_new <- false
-  let reset status = status.is_new <- true }
+{
+  open Parser
+
+  let s = ref true
+
+  let check status = let () = if !status then () else raise (Failure "Syntax error") in status := false
+
+  let reset status = status := true
+}
 
 let letter = ['a'-'z' 'A'-'Z']
 let digit = ['0'-'9']
@@ -54,8 +56,8 @@ rule token = parse
   | "constructor" { check s; CONSTR }
   | "true"        { check s; BOOLLIT true }
   | "false"       { check s; BOOLLIT false }
-  | '-'? digit+ as lxm { check s; LIT (try int_of_string lxm
-      with Failure _ -> raise (Failure ("integer " ^ lxm ^ " out of range"))) }
+  | '-'? digit+ as lxm
+    { check s; LIT (try int_of_string lxm with Failure _ -> raise (Failure ("integer " ^ lxm ^ " out of range"))) }
   | letter (letter | digit | '_')* as lxm { check s; ID lxm }
   | (letter (letter | digit | '_')* '.')+ letter (letter | digit | '_')* as lxm { check s; MEMID lxm }
   | '-'? digit+ '.' digit+ as lxm { check s; DOUBLELIT lxm }
@@ -64,9 +66,9 @@ rule token = parse
   | _ as char     { raise (Failure ("Unexpected character: " ^ Char.escaped char)) }
 
 and comment = parse
-    '\n' { token lexbuf }
-  | _    { comment lexbuf }
-  | eof	 { EOF }
+    '\n'          { token lexbuf }
+  | _             { comment lexbuf }
+  | eof	          { EOF }
 
 and string_lit buf = parse
     '"'           { STRINGLIT (Buffer.contents buf) }

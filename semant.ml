@@ -27,14 +27,13 @@ let check toplevels =
   in
   let check_call lamb args =
     let ret_typ = match lamb with
-        SVarType (SLambda (types, ret)), _ -> let _ = try List.map2 confirm_type types args
+        SVarType (SLambda (types, ret)), _ ->
+        let _ = try List.map2 confirm_type types args
           with Invalid_argument _ -> raise (Failure "lambda expression call: invalid arguments")
         in
         ret
-      | SBuiltInTyp builtin, _ -> let check_same_type exprs = match exprs with
-            [] -> []
-          | (r, _) :: _ -> List.map (confirm_ret_type r) exprs
-        in
+      | SBuiltInTyp builtin, _ ->
+        let check_same_type exprs = match exprs with [] -> [] | (r, _) :: _ -> List.map (confirm_ret_type r) exprs in
         (match builtin with
           Add | Mult -> (match check_same_type args with
             SVarType SInt :: _ when List.length args > 1 -> SVarType SInt
@@ -133,11 +132,13 @@ let check toplevels =
       in
       SVarType typ, SMemId ((first, first_classname), List.combine middle (List.tl cls_names), last)
     | Call (lamb, args) -> check_call (check_expr syms cls lamb) (List.map (check_expr syms cls) args)
-    | Lst (typ, exprs) -> let typ = check_type cls typ in
-        let exprs' = List.map (check_expr syms cls) exprs in
-        let _ = List.map (confirm_type typ) exprs' in
-        SVarType (SList typ), SLst (typ, exprs')
-    | LambdaExpr (typs, ret, formals, expr) -> let typs = List.map (check_type cls) typs in
+    | Lst (typ, exprs) ->
+      let typ = check_type cls typ in
+      let exprs' = List.map (check_expr syms cls) exprs in
+      let _ = List.map (confirm_type typ) exprs' in
+      SVarType (SList typ), SLst (typ, exprs')
+    | LambdaExpr (typs, ret, formals, expr) ->
+      let typs = List.map (check_type cls) typs in
       let ret = check_ret_type cls ret in
       let sym' = try List.fold_left2 (fun sym typ formal -> if StringMap.mem formal cls
           then raise (Failure (formal ^ " is a class name")) else StringMap.add formal typ sym)
@@ -149,24 +150,25 @@ let check toplevels =
   in
   let check_toplevel (sym, cls, checked) = function
       Bind (typ, name, expr) -> if StringMap.mem name sym
-      then raise (Failure ("identifier " ^ name ^ " is already declared"))
-      else let typ = check_type cls typ in
-        (match typ with
-          SLambda (_, _) -> let sym = StringMap.add name typ sym in
+        then raise (Failure ("identifier " ^ name ^ " is already declared"))
+        else let typ = check_type cls typ in
+          (match typ with
+            SLambda _ ->
+            let sym = StringMap.add name typ sym in
             let expr' = check_expr [sym] cls expr in
             sym, cls, SBind (confirm_type typ expr', name, expr') :: checked
-        | _ -> let expr' = check_expr [sym] cls expr in
-          StringMap.add name typ sym, cls, SBind (confirm_type typ expr', name, expr') :: checked)
+          | _ ->
+            let expr' = check_expr [sym] cls expr in
+            StringMap.add name typ sym, cls, SBind (confirm_type typ expr', name, expr') :: checked)
     | DeclClass (name, memlist, constrlst) ->
       let add_member (vars, smembers) (name_mem, typ) =
         if StringMap.mem name_mem vars then raise (Failure ("member " ^ name_mem ^ " is already declared"))
-        else let typ = check_type cls typ in
-          StringMap.add name_mem typ vars, (name_mem, typ) :: smembers
+          else let typ = check_type cls typ in StringMap.add name_mem typ vars, (name_mem, typ) :: smembers
       in
       let vars, smembers = List.fold_left add_member (StringMap.empty, []) memlist in
       let check_constructor sym =
         let list_equal l1 l2 = try List.map2 (fun a b ->
-          if a <> b then raise (Failure ("class " ^ name ^ ": invalid constructor"))) l1 l2
+            if a <> b then raise (Failure ("class " ^ name ^ ": invalid constructor"))) l1 l2
           with Invalid_argument _ -> raise (Failure ("class " ^ name ^ ": invalid constructor"))
         in
         let mem_names, _ = List.split (StringMap.bindings vars) in
