@@ -14,6 +14,7 @@ tests=(
 	test_arithmetic
 	test_logical
 	test_if
+	test_lazy
 	test_lambda
 	test_class
 	test_list

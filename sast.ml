@@ -51,8 +51,8 @@ and string_of_sret_typ = function
   | SBuiltInTyp builtin -> "builtin " ^ string_of_built_in(builtin)
   | SVoid -> "void"
 
-let rec string_of_sexpr (t, e) = 
-  "(" ^ string_of_sret_typ t ^ " : " ^ (match e with
+let rec string_of_sexpr (t, e) =
+  let exp_str = match e with
       SLit lit -> string_of_int lit
     | SDoubleLit dlit -> dlit
     | SBoolLit blit -> string_of_bool blit
@@ -67,7 +67,9 @@ let rec string_of_sexpr (t, e) =
       "(list " ^ string_of_styp typ ^ List.fold_left (fun str exp -> str ^ " " ^ string_of_sexpr exp) "" exps ^ ")"
     | SLambdaExpr (typ_list, ret_typ, formal_list, expr) ->
       "(lambda (" ^ string_of_styp_list typ_list ^ "-> " ^ string_of_sret_typ ret_typ ^ ") ("
-        ^ string_of_formal_list formal_list ^ ") " ^ string_of_sexpr expr ^ ")") ^ ")"
+        ^ string_of_formal_list formal_list ^ ") " ^ string_of_sexpr expr ^ ")"
+  in
+  "(" ^ string_of_sret_typ t ^ " : " ^ exp_str ^ ")"
 
 let string_of_smember (name, typ) = "(member (" ^ string_of_styp typ ^ " " ^ name ^ "))"
 

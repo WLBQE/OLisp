@@ -17,8 +17,8 @@ let translate (sym_semant, cls, stoplevels) =
   let the_module = L.create_module context "OLisp" in
   let structs =
     let add_struct mp (name, (_, constrlist)) =
-      let add_member (mp, i) member = (StringMap.add member i mp, i + 1) in
-      let (cmap, _) = List.fold_left add_member (StringMap.empty, 0) constrlist in
+      let add_member (mp, i) member = StringMap.add member i mp, i + 1 in
+      let cmap, _ = List.fold_left add_member (StringMap.empty, 0) constrlist in
       StringMap.add name ((L.named_struct_type context name), cmap) mp
     in
     List.fold_left add_struct StringMap.empty (StringMap.bindings cls)
@@ -40,7 +40,7 @@ let translate (sym_semant, cls, stoplevels) =
   in
   let () =
     let add_class name =
-      let (vars, constrlist) = StringMap.find name cls in
+      let vars, constrlist = StringMap.find name cls in
       let var_types = List.map ltype_of_styp (List.map (fun var_name -> StringMap.find var_name vars) constrlist) in
       L.struct_set_body (L.element_type (ltype_of_styp (SClass name))) (Array.of_list var_types) false
     in
@@ -79,14 +79,15 @@ let translate (sym_semant, cls, stoplevels) =
     let true_str = L.build_global_stringptr "true\n" "true" builder in
     let false_str = L.build_global_stringptr "false\n" "false" builder in
     let bool_str = L.define_global "bool" (L.const_array (L.pointer_type i8_t) [|false_str; true_str|]) the_module in
-    let rec build_expr builder env (t, e) = (match e with
+    let rec build_expr builder env (t, e) = match e with
         SLit i -> L.const_int i32_t i
       | SDoubleLit d -> L.const_float_of_string double_t d
       | SBoolLit b -> L.const_int i1_t (if b then 1 else 0)
       | SStringLit s -> L.build_global_stringptr s "str" builder
-      | SId id -> let (_, sym) = env in L.build_load (lookup id sym) id builder
-      | SMemId ((first, first_typ), middle, last) -> let (members, class_names) = List.split middle in
-        let (_, sym) = env in
+      | SId id -> let _, sym = env in
+        L.build_load (lookup id sym) id builder
+      | SMemId ((first, first_typ), middle, last) -> let members, class_names = List.split middle in
+        let _, sym = env in
         let first_ptr = L.build_load (lookup first sym) first builder in
         let struct_idx_of_mem member class_name = (StringMap.find member (snd (StringMap.find class_name structs))) in
         let process_name ptr member class_name =
@@ -116,36 +117,55 @@ let translate (sym_semant, cls, stoplevels) =
           StringMap.add name local mp
         in
         let sym' = List.fold_left2 add_formal StringMap.empty (List.combine typs formals) params in
-        let _ = let (_, sym) = env in (match ret with
+        let _ =
+          let _, sym = env in
+          match ret with
             SVoid -> let _ = build_expr lamb_builder (lamb_function, (sym' :: sym)) expr in
             L.build_ret_void lamb_builder
-          | _ -> L.build_ret (build_expr lamb_builder (lamb_function, (sym' :: sym)) expr) lamb_builder)
+          | _ -> L.build_ret (build_expr lamb_builder (lamb_function, (sym' :: sym)) expr) lamb_builder
         in
         lamb_function
       | SCall (lamb, exprs) -> (match lamb with
           (SBuiltInTyp builtin, _) -> (match builtin with
-            A.Add | A.Mult | A.And | A.Or -> let (typ, _) = List.hd exprs in
-            let linstr = (match (typ, builtin) with
+            A.Add | A.Mult-> let typ, _ = List.hd exprs in
+            let linstr = match (typ, builtin) with
                 SVarType SInt, A.Add -> L.build_add
               | SVarType SDouble, A.Add -> L.build_fadd
               | SVarType SInt, A.Mult -> L.build_mul
               | SVarType SDouble, A.Mult -> L.build_fmul
-              | SVarType SBool, A.And -> L.build_and
-              | SVarType SBool, A.Or -> L.build_or
-              | _ -> raise (Failure "compiler bug"))
+              | _ -> raise (Failure "compiler bug")
             in
-            let rec build_multivar = (function
+            let rec build_multivar = function
                 hd :: [e] -> let arg1 = (build_expr builder env hd) in
                 linstr arg1 (build_expr builder env e) "val" builder
               | hd :: (h :: tl) -> let arg1 = (build_expr builder env hd) in
                 linstr arg1 (build_multivar (h :: tl)) "val" builder
-              | _ -> raise (Failure "compiler bug"))
+              | _ -> raise (Failure "compiler bug")
             in
             build_multivar exprs
+          | A.And | A.Or-> let func, _ = env in
+            let is_and = builtin = A.And in
+            let rec build_preds builder merge result = function
+                [] -> let _ = L.build_store (L.const_int i1_t (if is_and then 1 else 0)) result builder in
+                  L.build_br merge builder
+              | hd :: tl -> let hd_val = build_expr builder env hd in
+                let next = L.append_block context "pred" func in
+                let _ = if is_and then L.build_cond_br hd_val next merge builder
+                  else L.build_cond_br hd_val merge next builder
+                in
+                build_preds (L.builder_at_end context next) merge result tl
+            in
+            let result = L.build_alloca i1_t "result" builder in
+            let _ = L.build_store (L.const_int i1_t (if is_and then 0 else 1)) result builder in
+            let merge = L.append_block context "merge" func in
+            let _ = build_preds builder merge result exprs in
+            let () = L.position_builder (L.instr_begin merge) builder in
+            L.build_load result "result" builder
           | A.Sub | A.Div | A.Mod | A.Eq | A.Neq | A.Lt | A.Gt | A.Leq | A.Geq ->
-            let (typ, _) = List.hd exprs in (match typ with
+            let typ, _ = List.hd exprs in
+              (match typ with
                 SVarType SInt | SVarType SDouble | SVarType SBool ->
-                let linstr = (match (typ, builtin) with
+                let linstr = match typ, builtin with
                     SVarType SInt, A.Sub -> L.build_sub
                   | SVarType SDouble, A.Sub -> L.build_fsub
                   | SVarType SInt, A.Div -> L.build_sdiv
@@ -163,15 +183,15 @@ let translate (sym_semant, cls, stoplevels) =
                   | SVarType SDouble, A.Leq -> L.build_fcmp L.Fcmp.Ole
                   | SVarType SInt, A.Geq -> L.build_icmp L.Icmp.Sge
                   | SVarType SDouble, A.Geq -> L.build_fcmp L.Fcmp.Oge
-                  | _ -> raise (Failure "compiler bug"))
+                  | _ -> raise (Failure "compiler bug")
                 in
                 let arg1 = (build_expr builder env (List.hd exprs)) in
                 let arg2 = (build_expr builder env (List.hd (List.tl exprs))) in
                 linstr arg1 arg2 "val" builder
-              | SVarType SString -> let comp = (match builtin with
+              | SVarType SString -> let comp = match builtin with
                   A.Eq -> L.build_icmp L.Icmp.Eq
                 | A.Neq -> L.build_icmp L.Icmp.Ne
-                | _ -> raise (Failure "compiler bug"))
+                | _ -> raise (Failure "compiler bug")
                 in
                 let arg1 = (build_expr builder env (List.hd exprs)) in
                 let arg2 = (build_expr builder env (List.hd (List.tl exprs))) in
@@ -198,11 +218,11 @@ let translate (sym_semant, cls, stoplevels) =
             L.build_call list_append_func (Array.of_list (length :: lists)) "append" builder
           | A.Empty -> L.build_is_null (build_expr builder env (List.hd exprs)) "empty" builder
           | A.If -> (match exprs with
-              [pred; e_then; e_else] -> let (func, _) = env in
+              [pred; e_then; e_else] -> let func, _ = env in
               let bool_val = build_expr builder env pred in
-              let result = (match t with
+              let result = match t with
                   SVoid -> L.const_int i1_t 0
-                | _ -> L.build_alloca (ltype_of_sret_typ t) "result" builder)
+                | _ -> L.build_alloca (ltype_of_sret_typ t) "result" builder
               in
               let merge_bb = L.append_block context "merge" func in
               let then_bb = L.append_block context "then" func in
@@ -216,9 +236,9 @@ let translate (sym_semant, cls, stoplevels) =
               let else_bb = L.append_block context "else" func in
               let else_builder = L.builder_at_end context else_bb in
               let else_expr = build_expr else_builder env e_else in
-              let () = (match t with
+              let () = match t with
                   SVoid -> ()
-                | _ -> ignore (L.build_store else_expr result else_builder))
+                | _ -> ignore (L.build_store else_expr result else_builder)
               in
               let _ = L.build_br merge_bb else_builder in
               let _ = L.build_cond_br bool_val then_bb else_bb builder in
@@ -228,20 +248,22 @@ let translate (sym_semant, cls, stoplevels) =
                 | _ -> L.build_load result "val" builder)
             | _ -> raise (Failure "compiler bug"))
           | A.Begin -> List.hd (List.rev (List.map (build_expr builder env) exprs))
-          | A.Print -> L.build_call printf_func (let e = List.hd exprs in match e with
-                (SVarType SInt, _) -> [|int_format_str; build_expr builder env e|]
-              | (SVarType SDouble, _) -> [|double_format_str; build_expr builder env e|]
-              | (SVarType SBool, _) -> [|L.build_load (L.build_in_bounds_gep bool_str
+          | A.Print -> let e = List.hd exprs in
+            let args = match e with
+                SVarType SInt, _ -> [|int_format_str; build_expr builder env e|]
+              | SVarType SDouble, _ -> [|double_format_str; build_expr builder env e|]
+              | SVarType SBool, _ -> [|L.build_load (L.build_in_bounds_gep bool_str
                   [|L.const_int i32_t 0; L.build_zext (build_expr builder env e) i32_t "bool_str_idx" builder|]
                   "bool_str_ptr" builder) "bool_str" builder|]
-              | (SVarType SString, _) -> [|string_format_str; build_expr builder env e|]
-              | _ -> raise (Failure "compiler bug"))
-            "printf" builder)
-        | (SVarType (SLambda (_, ret)), _) -> let lamb' = (build_expr builder env lamb) in
+              | SVarType SString, _ -> [|string_format_str; build_expr builder env e|]
+              | _ -> raise (Failure "compiler bug")
+            in
+            L.build_call printf_func args "printf" builder)
+        | SVarType (SLambda (_, ret)), _ -> let lamb' = (build_expr builder env lamb) in
           L.build_call lamb' (Array.of_list (List.map (build_expr builder env) exprs))
             (match ret with SVoid -> "" | _ -> "call") builder
         | _ -> raise (Failure "compiler bug"))
-      | SBuiltIn _ -> raise (Failure "compiler bug"))
+      | SBuiltIn _ -> raise (Failure "compiler bug")
     in
     let build_toplevel = function
         SExpr (typ, expr) -> (match expr with
@@ -249,7 +271,7 @@ let translate (sym_semant, cls, stoplevels) =
           | _ -> ())
       | SBind (typ, name, expr) -> let expr' = build_expr builder (main_func, [global_vars]) expr in
         ignore (L.build_store expr' (StringMap.find name global_vars) builder)
-      | SDeclClass (name, _, _) -> let (vars, constrlist) = StringMap.find name cls in
+      | SDeclClass (name, _, _) -> let vars, constrlist = StringMap.find name cls in
         let bindings = List.map (fun var_name -> (StringMap.find var_name vars, var_name)) constrlist in
         let constructor_type = (L.element_type (L.element_type (L.type_of (StringMap.find name global_vars)))) in
         let constructor = L.define_function ("constructor_" ^ name) constructor_type the_module in
