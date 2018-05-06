@@ -25,9 +25,10 @@ let check toplevels =
     | BuiltInTyp builtin -> SBuiltInTyp builtin
     | Void -> SVoid
   in
-  let rec check_call lamb args = ((match lamb with
+  let check_call lamb args = ((match lamb with
       (SVarType (SLambda (types, ret)), _) -> let _ = try List.map2 confirm_type types args
-        with Invalid_argument _ -> raise (Failure "lambda expression call: invalid arguments") in
+        with Invalid_argument _ -> raise (Failure "lambda expression call: invalid arguments")
+      in
       ret
     | (SBuiltInTyp builtin, _) -> let check_same_type exprs = match exprs with
         [] -> []
@@ -92,8 +93,10 @@ let check toplevels =
           [(SVarType SString, _)] | [(SVarType SInt, _)]
         | [(SVarType SDouble, _)] | [(SVarType SBool, _)] -> SVoid
         | _ -> raise (Failure "print: invalid argument")))
-    | _ -> raise (Failure "invalid call: not a lambda")), SCall (lamb, args))
-  and check_expr syms cls =
+    | _ -> raise (Failure "invalid call: not a lambda")),
+    SCall (lamb, args))
+  in
+  let rec check_expr syms cls =
     let rec type_of_id id = function
         [] -> raise (Failure ("undeclared identifier: " ^ id))
       | sym :: rest -> try StringMap.find id sym with Not_found -> type_of_id id rest
@@ -109,8 +112,9 @@ let check toplevels =
       let get_class_name outer id =
         let enclosing = List.hd (List.rev outer) in
         let (vars, _) = StringMap.find enclosing cls in
-        let id_type = try StringMap.find id vars with Not_found ->
-          raise (Failure ("class " ^ enclosing ^ " does not have member " ^ id)) in
+        let id_type = try StringMap.find id vars
+          with Not_found -> raise (Failure ("class " ^ enclosing ^ " does not have member " ^ id))
+        in
         (match id_type with
             SClass name -> outer @ [name]
           | _ -> raise (Failure ("member " ^ id ^ " is not a class")))
@@ -122,8 +126,9 @@ let check toplevels =
       let cls_names = List.fold_left get_class_name [first_classname] middle in
       let cls_name = List.hd (List.rev cls_names) in
       let (vars, _) = StringMap.find cls_name cls in
-      let typ = try StringMap.find last vars with Not_found ->
-        raise (Failure ("class " ^ cls_name ^ " does not have member " ^ last)) in
+      let typ = try StringMap.find last vars
+        with Not_found -> raise (Failure ("class " ^ cls_name ^ " does not have member " ^ last))
+      in
       (SVarType typ, SMemId ((first, first_classname), List.combine middle (List.tl cls_names), last))
     | Call (lamb, args) -> check_call (check_expr syms cls lamb) (List.map (check_expr syms cls) args)
     | Lst (typ, exprs) -> let typ = check_type cls typ in
@@ -143,7 +148,8 @@ let check toplevels =
   let check_toplevel (sym, cls, checked) = function
       Bind (typ, name, expr) -> if StringMap.mem name sym
       then raise (Failure ("identifier " ^ name ^ " is already declared"))
-      else let typ = check_type cls typ in (match typ with
+      else let typ = check_type cls typ in
+        (match typ with
           SLambda (_, _) -> let sym = StringMap.add name typ sym in (sym, cls,
             let expr' = check_expr [sym] cls expr in SBind (confirm_type typ expr', name, expr') :: checked)
         | _ -> (StringMap.add name typ sym, cls,
@@ -157,7 +163,8 @@ let check toplevels =
       let check_constructor sym =
         let list_equal l1 l2 = try List.map2 (fun a b ->
           if a <> b then raise (Failure ("class " ^ name ^ ": invalid constructor"))) l1 l2
-          with Invalid_argument _ -> raise (Failure ("class " ^ name ^ ": invalid constructor")) in
+          with Invalid_argument _ -> raise (Failure ("class " ^ name ^ ": invalid constructor"))
+        in
         let (mem_names, _) = List.split (StringMap.bindings vars) in
         let _ = list_equal mem_names (List.sort compare constrlist) in
         let typ_list = List.map (fun id -> StringMap.find id vars) constrlist in
