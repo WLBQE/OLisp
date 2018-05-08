@@ -22,6 +22,7 @@ tests=(
 	int_map
 	int_filter
 	int_fold
+	merge_sort
 )
 
 fails=(
