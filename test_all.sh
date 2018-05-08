@@ -26,6 +26,7 @@ tests=(
 	sublist_from_head
 	sublist_from_tail
 	merge_sort
+	reverse
 )
 
 fails=(

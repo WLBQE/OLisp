@@ -1,0 +1,27 @@
+(define (([int] -> int) len)
+  (lambda ([int] -> int) (lst)
+    (if (empty lst)
+      0
+      (+ 1 (len (cdr lst))))))
+
+(define (([int] -> [int]) reverse)
+  (lambda ([int] -> [int]) (lst)
+    (if (or (= (len lst) 0) (= (len lst) 1))
+      lst
+      (append (reverse (cdr lst)) (list int (car lst))))))
+
+(define ([int] a) (list int 1 3 5 7 9))
+
+(define ([int] result) (reverse a))
+
+(define (((int -> void) [int] -> void) int_iter)
+  (lambda ((int -> void) [int] -> void) (func lst)
+    (if (not (empty lst))
+      (begin (func (car lst)) (int_iter func (cdr lst)))
+      (void))))
+
+(define ((int -> void) print_int)
+  (lambda (int -> void) (num)
+    (print num)))
+
+(int_iter print_int result)
