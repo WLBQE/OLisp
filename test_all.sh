@@ -29,6 +29,7 @@ tests=(
 	reverse
 	nth
 	for_all
+	exist
 )
 
 fails=(

@@ -1,0 +1,11 @@
+(define (((int -> bool) [int] -> bool) exist)
+  (lambda ((int -> bool) [int] -> bool) (func lst)
+    (if (empty lst)
+      false
+      (or (func (car lst)) (exist func (cdr lst))))))
+
+(define ([int] a) (list int 2 4 6 8 3))
+
+(define ((int -> bool) we_are_odds) (lambda (int -> bool) (n) (= (% n 2) 1)))
+
+(print (exist we_are_odds a))
