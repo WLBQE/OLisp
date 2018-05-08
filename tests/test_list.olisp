@@ -1,4 +1,7 @@
 (define ([int] a) (list int 11 22 33))
+(define ([[int]] twoD) (list [int] a)) // 2d list
+(define ([[[int]]] threeD) (list [[int]] twoD)) // 3d list
+(define ([[[[int]]]] fourD) (list [[[int]]] threeD)) // I can do this all day
 (define ([int] b) (list int))
 (define ([double] c) (cons 1.5 (list double 1.2 1.3 1.4)))
 (define ([int] d) (cons 12 b))
@@ -9,6 +12,9 @@
 (print (empty a))
 (print (empty b))
 (print (empty c))
+(print (car (car twoD)))
+(print (car (car (car threeD))))
+(print (car (car (car (car fourD))))) // When there are many parenthese...
 (print (car a))
 (print (car c))
 (print (car (cdr a)))
