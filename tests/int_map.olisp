@@ -12,9 +12,9 @@
 
 (define (((int -> void) [int] -> void) int_iter)
   (lambda ((int -> void) [int] -> void) (func lst)
-    (if (not (empty lst))
-      (begin (func (car lst)) (int_iter func (cdr lst)))
-      (print "end"))))
+    (if (empty lst)
+      (void)
+      (begin (func (car lst)) (int_iter func (cdr lst))))))
 
 (define ((int -> void) print_int)
   (lambda (int -> void) (num)
