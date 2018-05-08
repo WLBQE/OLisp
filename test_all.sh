@@ -19,6 +19,7 @@ tests=(
 	test_class
 	test_list
 	int_iter
+	int_map
 )
 
 fails=(
