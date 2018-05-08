@@ -21,6 +21,7 @@ tests=(
 	int_iter
 	int_map
 	int_filter
+	int_fold
 )
 
 fails=(
