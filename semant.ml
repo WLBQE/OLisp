@@ -92,7 +92,8 @@ let check toplevels =
         | Print -> (match args with
             [SVarType SString, _] | [SVarType SInt, _]
           | [SVarType SDouble, _] | [SVarType SBool, _] -> SVoid
-          | _ -> raise (Failure "print: invalid argument")))
+          | _ -> raise (Failure "print: invalid argument"))
+        | None -> if List.length args = 0 then SVoid else raise (Failure "void: no arguments allowed"))
       | _ -> raise (Failure "invalid call: not a lambda")
     in
     ret_typ, SCall (lamb, args)

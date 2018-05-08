@@ -4,7 +4,7 @@ type built_in =
   | And | Or | Not
   | I2d | D2i
   | Cons | Car | Cdr | Append | Empty
-  | If | Begin | Print
+  | If | Begin | Print | None
 
 type typ =
     Int
@@ -69,6 +69,7 @@ let string_of_built_in = function
   | If -> "if"
   | Begin -> "begin"
   | Print -> "print"
+  | None -> "void"
 
 let rec string_of_formal_list = function
     [] -> ""
