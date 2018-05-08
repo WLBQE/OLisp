@@ -24,6 +24,7 @@ tests=(
 	int_fold
 	len
 	sublist_from_head
+	sublist_from_tail
 	merge_sort
 )
 
