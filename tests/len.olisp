@@ -1,0 +1,11 @@
+(define (([int] -> int) len)
+  (lambda ([int] -> int) (lst)
+    (if (empty lst)
+      0
+      (+ 1 (len (cdr lst))))))
+
+(define ([int] a) (list int 11 22 33))
+(define ([int] b) (list int))
+
+(print (len a))
+(print (len b))
