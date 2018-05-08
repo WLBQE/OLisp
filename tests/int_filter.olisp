@@ -1,0 +1,25 @@
+(define (((int -> bool) [int] -> [int]) int_filter)
+  (lambda ((int -> bool) [int] -> [int]) (func lst)
+    (if (empty lst)
+      lst
+      (if (func (car lst))
+        (cons (car lst) (int_filter func (cdr lst)))
+        (int_filter func (cdr lst))))))
+
+(define ([int] a) (list int 1 2 3 4 5 6 7 8 9))
+
+(define ((int -> bool) onlyOddPlease) (lambda (int -> bool) (n) (= (% n 2) 1)))
+
+(define ([int] result) (int_filter onlyOddPlease a))
+
+(define (((int -> void) [int] -> void) int_iter)
+  (lambda ((int -> void) [int] -> void) (func lst)
+    (if (not (empty lst))
+      (begin (func (car lst)) (int_iter func (cdr lst)))
+      (print "end"))))
+
+(define ((int -> void) print_int)
+  (lambda (int -> void) (num)
+    (print num)))
+
+(int_iter print_int result)

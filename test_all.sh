@@ -20,6 +20,7 @@ tests=(
 	test_list
 	int_iter
 	int_map
+	int_filter
 )
 
 fails=(
