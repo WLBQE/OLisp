@@ -91,6 +91,7 @@ built_in:
   | IF     { If }
   | BEGIN  { Begin }
   | PRINT  { Print }
+  | VOID   { None }
 
 expr_list:
     /* nothing */  { [] }

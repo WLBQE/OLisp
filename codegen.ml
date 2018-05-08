@@ -228,7 +228,7 @@ let translate (sym_semant, cls, stoplevels) =
               let func, _ = env in
               let bool_val = build_expr builder env pred in
               let result = match t with
-                  SVoid -> L.const_int i1_t 0
+                  SVoid -> L.const_int i32_t 0
                 | _ -> L.build_alloca (ltype_of_sret_typ t) "result" builder
               in
               let merge_bb = L.append_block context "merge" func in
@@ -258,7 +258,8 @@ let translate (sym_semant, cls, stoplevels) =
               | SVarType SString, _ -> [|string_format_str; build_expr builder env e|]
               | _ -> raise (Failure "compiler bug")
             in
-            L.build_call printf_func args "printf" builder)
+            L.build_call printf_func args "printf" builder
+          | A.None -> L.const_int i32_t 0)
         | SVarType (SLambda (_, ret)), _ ->
           let lamb' = build_expr builder env lamb in
           L.build_call lamb' (Array.of_list (List.map (build_expr builder env) exprs))
