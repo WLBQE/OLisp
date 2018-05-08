@@ -41,7 +41,7 @@ struct list* append(int len, ...) {
 	struct list* begin = NULL;
 	struct list** current = &begin;
 	va_start(args, len);
-	for (int i = 0; i < len; ++i) {
+	for (int i = 0; i < len - 1; ++i) {
 		struct list* l = va_arg(args, struct list*);
 		while (l) {
 			*current = malloc(sizeof(struct list));
@@ -51,6 +51,7 @@ struct list* append(int len, ...) {
 			l = l->next;
 		}
 	}
+	*current = va_arg(args, struct list*);
 	va_end(args);
 	return begin;
 }
