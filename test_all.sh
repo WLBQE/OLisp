@@ -18,6 +18,7 @@ tests=(
 	test_lambda
 	test_class
 	test_list
+	int_iter
 )
 
 fails=(

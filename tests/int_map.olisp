@@ -1,0 +1,5 @@
+(define (((int -> int) [int] -> [int]) int_map)
+  (lambda ((int -> int) [int] -> [int]) (func lst)
+    (if (empty lst)
+      lst
+      (cons (func (car lst)) cdr lst))))

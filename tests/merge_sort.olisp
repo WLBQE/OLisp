@@ -1,0 +1,9 @@
+(define (([int] [int] -> [int]) merge)
+  (lambda ([int] [int] -> [int]) (list1 list2)
+    (if (empty list1)
+      list2
+      (if (empty list2)
+        list1
+        (if (< (car list1) (car list2))
+          (cons (car list1) (merge (cdr list1) list2))
+          (cons (car list2) (merge list1 (cdr list2))))))))
