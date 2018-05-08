@@ -28,7 +28,7 @@ tests=(
 	merge_sort
 	reverse
 	nth
-	sudoku
+	for_all
 )
 
 fails=(

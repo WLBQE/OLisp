@@ -1,0 +1,11 @@
+(define (((int -> bool) [int] -> bool) for_all)
+  (lambda ((int -> bool) [int] -> bool) (func lst)
+    (if (empty lst)
+      true
+      (and (func (car lst)) (for_all func (cdr lst))))))
+
+(define ([int] a) (list int 1 3 5 7 9))
+
+(define ((int -> bool) we_are_odds) (lambda (int -> bool) (n) (= (% n 2) 1)))
+
+(print (for_all we_are_odds a))
