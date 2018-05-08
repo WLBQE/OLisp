@@ -25,6 +25,7 @@ fails=(
 	fail_call
 	fail_define1
   fail_define2
+	fail_define3
 	fail_class
 )
 
