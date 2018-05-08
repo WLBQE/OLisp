@@ -30,6 +30,7 @@ tests=(
 	nth
 	for_all
 	exist
+	mem
 )
 
 fails=(

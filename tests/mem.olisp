@@ -1,0 +1,9 @@
+(define ((int [int] -> bool) mem)
+  (lambda (int [int] -> bool) (el lst)
+    (if (empty lst)
+      false
+      (or (= (car lst) el) (mem el (cdr lst))))))
+
+(define ([int] a) (list int 2 4 6 8 3))
+
+(print (mem 6 a))
