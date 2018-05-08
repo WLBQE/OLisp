@@ -1,6 +1,0 @@
-// Illegal symbol error
-(define ((int => int) fibonacci)
-  (lambda (int => int) (n)
-    (if (or (= n 0) (= n 1))
-      1
-      (+ (fibonacci (- n 1)) (fibonacci (- n 2))))))

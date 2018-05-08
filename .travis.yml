@@ -15,8 +15,6 @@ install:
 - make
 
 script:
-- ./test_parser.sh
-- ./test_semant.sh
 - ./test_all.sh
 
 notifications:

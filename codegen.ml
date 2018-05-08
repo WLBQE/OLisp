@@ -116,12 +116,14 @@ let translate (sym_semant, cls, stoplevels) =
           let _ = L.build_store param local lamb_builder in
           StringMap.add name local mp
         in
-        let sym' = List.fold_left2 add_formal StringMap.empty (List.combine typs formals) params in
         let _ =
           let _, sym = env in
+          let sym' = List.fold_left2 add_formal StringMap.empty (List.combine typs formals) params in
           match ret with
-            SVoid -> let _ = build_expr lamb_builder (lamb_func, (sym' :: sym)) expr in L.build_ret_void lamb_builder
-          | _ -> L.build_ret (build_expr lamb_builder (lamb_func, (sym' :: sym)) expr) lamb_builder
+            SVoid ->
+            let _ = build_expr lamb_builder (lamb_func, [sym'; List.hd (List.rev sym)]) expr in
+            L.build_ret_void lamb_builder
+          | _ -> L.build_ret (build_expr lamb_builder (lamb_func, [sym'; List.hd (List.rev sym)]) expr) lamb_builder
         in
         lamb_func
       | SCall (lamb, exprs) -> (match lamb with

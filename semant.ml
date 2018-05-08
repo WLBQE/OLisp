@@ -146,7 +146,7 @@ let check toplevels =
         StringMap.empty typs formals
         with Invalid_argument _ -> raise (Failure "lambda expression: invalid number of formals")
       in
-      let expr' = check_expr (sym' :: syms) cls expr in
+      let expr' = check_expr [sym'; List.hd (List.rev syms)] cls expr in
       SVarType (SLambda (typs, ret)), SLambdaExpr (typs, confirm_ret_type ret expr', formals, expr')
   in
   let check_toplevel (sym, cls, checked) = function

@@ -1,8 +1,0 @@
-(define ((int -> int) factorial)
-  (lambda (int -> int) (n)
-    (if (<= n 1)
-      1
-      (* (factorial (- n 1)) n))))
-
-(define (int result) (factorial 3))
-(print result)

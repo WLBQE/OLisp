@@ -1,6 +1,0 @@
-// Too many return values
-(define ((int int -> int int) badFunction)
-  (lambda (int int -> int int) (x y)
-    (if (> x y)
-      x
-      y)))
