@@ -4,6 +4,7 @@
 (define (bool c) true)
 (define (string d) "yes")
 (define (string e) "no")
+(define (string E) "\"I am CEO\"\n")
 (define (bool f) false)
 
 (print a)
@@ -12,4 +13,5 @@
 (print c)
 (print d)
 (print e)
+(print E)
 (print f)
