@@ -18,20 +18,20 @@ tests=(
 	test_lambda
 	test_class
 	test_list
-	int_iter
-	int_map
-	int_filter
-	int_fold
-	len
-	sublist_from_head
-	sublist_from_tail
-	merge_sort
-	reverse
-	nth
-	for_all
-	exist
-	mem
-	quick_sort
+	lstlib_int_iter
+	lstlib_int_map
+	lstlib_int_filter
+	lstlib_int_fold
+	lstlib_len
+	lstlib_sublist_from_head
+	lstlib_sublist_from_tail
+	lstlib_merge_sort
+	lstlib_reverse
+	lstlib_nth
+	lstlib_for_all
+	lstlib_exist
+	lstlib_mem
+	lstlib_quick_sort
 )
 
 fails=(
