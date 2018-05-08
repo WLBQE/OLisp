@@ -23,6 +23,7 @@ tests=(
 	int_filter
 	int_fold
 	len
+	sublist_from_head
 	merge_sort
 )
 

@@ -1,0 +1,28 @@
+(define (([int] -> int) len)
+  (lambda ([int] -> int) (lst)
+    (if (empty lst)
+      0
+      (+ 1 (len (cdr lst))))))
+
+// get a sublist of length l, from head
+(define (([int] int -> [int]) sublist_from_head)
+  (lambda ([int] int -> [int]) (lst l)
+    (if (= l 0)
+      (list int)
+      (cons (car lst) (sublist_from_head (cdr lst) (- l 1))))))
+
+(define ([int] a) (list int 1 2 3 4 5 6 7 8 9))
+
+(define ([int] result) (sublist_from_head a 4))
+
+(define (((int -> void) [int] -> void) int_iter)
+  (lambda ((int -> void) [int] -> void) (func lst)
+    (if (not (empty lst))
+      (begin (func (car lst)) (int_iter func (cdr lst)))
+      (void))))
+
+(define ((int -> void) print_int)
+  (lambda (int -> void) (num)
+    (print num)))
+
+(int_iter print_int result)
