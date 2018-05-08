@@ -23,7 +23,8 @@ tests=(
 fails=(
 	fail_add
 	fail_call
-	fail_define
+	fail_define1
+  fail_define2
 	fail_class
 )
 
