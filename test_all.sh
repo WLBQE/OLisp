@@ -31,6 +31,7 @@ tests=(
 	for_all
 	exist
 	mem
+	quick_sort
 )
 
 fails=(

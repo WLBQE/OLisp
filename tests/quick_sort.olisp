@@ -1,0 +1,41 @@
+(define ((int [int] -> [int]) less_list)
+  (lambda (int [int] -> [int]) (el lst)
+    (if (empty lst)
+      (list int)
+      (if (< el (car lst))
+        (less_list el (cdr lst))
+        (cons (car lst) (less_list el (cdr lst)))))))
+
+(define ((int [int] -> [int]) greater_list)
+  (lambda (int [int] -> [int]) (el lst)
+    (if (empty lst)
+      (list int)
+      (if (>= el (car lst))
+        (greater_list el (cdr lst))
+        (cons (car lst) (greater_list el (cdr lst)))))))
+
+(define (([int] -> [int]) quick_sort)
+  (lambda ([int] -> [int]) (lst)
+    (if (empty lst)
+      (list int)
+      (append
+        (quick_sort (less_list (car lst) (cdr lst)))
+        (cons (car lst) (list int))
+        (quick_sort (greater_list (car lst) (cdr lst)))))))
+
+
+(define ([int] a) (list int 1 5 3 9 7))
+
+(define ([int] result) (quick_sort a))
+
+(define (((int -> void) [int] -> void) int_iter)
+  (lambda ((int -> void) [int] -> void) (func lst)
+    (if (not (empty lst))
+      (begin (func (car lst)) (int_iter func (cdr lst)))
+      (void))))
+
+(define ((int -> void) print_int)
+  (lambda (int -> void) (num)
+    (print num)))
+
+(int_iter print_int result)
