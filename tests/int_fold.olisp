@@ -1,0 +1,13 @@
+(define (((int int -> int) int [int] -> int) int_fold)
+  (lambda ((int int -> int) int [int] -> int) (func acc lst)
+    (if (empty lst)
+      acc
+      (int_fold func (func acc (car lst)) (cdr lst)))))
+
+(define ([int] a) (list int 1 2 3 4 5 6 7 8 9))
+
+(define ((int int -> int) addup) (lambda (int int -> int) (n1 n2) (+ n1 n2)))
+
+(define (int result) (int_fold addup 0 a))
+
+(print result)

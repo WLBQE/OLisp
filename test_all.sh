@@ -18,12 +18,20 @@ tests=(
 	test_lambda
 	test_class
 	test_list
+	int_iter
+	int_map
+	int_filter
+	int_fold
+	len
+	merge_sort
 )
 
 fails=(
 	fail_add
 	fail_call
-	fail_define
+	fail_define1
+  fail_define2
+	fail_define3
 	fail_class
 )
 

@@ -1,0 +1,26 @@
+(define (([int] [int] -> [int]) merge)
+  (lambda ([int] [int] -> [int]) (list1 list2)
+    (if (empty list1)
+      list2
+      (if (empty list2)
+        list1
+        (if (< (car list1) (car list2))
+          (cons (car list1) (merge (cdr list1) list2))
+          (cons (car list2) (merge list1 (cdr list2))))))))
+
+(define ([int] a) (list int 1 3 5 7 9))
+(define ([int] b) (list int 2 4 6 8 10))
+
+(define ([int] result) (merge a b))
+
+(define (((int -> void) [int] -> void) int_iter)
+  (lambda ((int -> void) [int] -> void) (func lst)
+    (if (not (empty lst))
+      (begin (func (car lst)) (int_iter func (cdr lst)))
+      (print "end"))))
+
+(define ((int -> void) print_int)
+  (lambda (int -> void) (num)
+    (print num)))
+
+(int_iter print_int result)

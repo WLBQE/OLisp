@@ -1,13 +1,17 @@
 (define (int a) 1)
+(define (int A) 1) // To illustrate that the identifiers are case-sensitive
 (define (double b) 1.2)
 (define (bool c) true)
 (define (string d) "yes")
 (define (string e) "no")
+(define (string E) "\"I am CEO\"\n")
 (define (bool f) false)
 
 (print a)
+(print A)
 (print b)
 (print c)
 (print d)
 (print e)
+(print E)
 (print f)

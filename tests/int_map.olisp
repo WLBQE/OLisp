@@ -1,0 +1,23 @@
+(define (((int -> int) [int] -> [int]) int_map)
+  (lambda ((int -> int) [int] -> [int]) (func lst)
+    (if (empty lst)
+      lst
+      (cons (func (car lst)) (int_map func (cdr lst))))))
+
+(define ([int] a) (list int 11 22 33))
+
+(define ((int -> int) doubleIt) (lambda (int -> int) (n) (* n 2)))
+
+(define ([int] result) (int_map doubleIt a))
+
+(define (((int -> void) [int] -> void) int_iter)
+  (lambda ((int -> void) [int] -> void) (func lst)
+    (if (not (empty lst))
+      (begin (func (car lst)) (int_iter func (cdr lst)))
+      (print "end"))))
+
+(define ((int -> void) print_int)
+  (lambda (int -> void) (num)
+    (print num)))
+
+(int_iter print_int result)
