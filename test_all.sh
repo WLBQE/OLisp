@@ -27,6 +27,7 @@ tests=(
 	sublist_from_tail
 	merge_sort
 	reverse
+	nth
 )
 
 fails=(
