@@ -106,4 +106,4 @@ mem_list:
   | mem_list mem { $2 :: $1 }
 
 mem:
-    LPAREN MEMBER LPAREN typ ID RPAREN RPAREN { ($5, $4) }
+    LPAREN MEMBER LPAREN typ ID RPAREN RPAREN { $5, $4 }
