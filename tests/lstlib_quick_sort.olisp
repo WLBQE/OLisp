@@ -23,7 +23,6 @@
         (cons (car lst) (list int))
         (quick_sort (greater_list (car lst) (cdr lst)))))))
 
-
 (define ([int] a) (list int 1 5 3 9 7))
 
 (define ([int] result) (quick_sort a))

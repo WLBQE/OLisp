@@ -4,7 +4,6 @@
       0
       (+ 1 (len (cdr lst))))))
 
-
 (define (([int] int -> [int]) sublist_from_head)
   (lambda ([int] int -> [int]) (lst l)
     (if (= l 0)
@@ -16,7 +15,6 @@
     (if (= l (len lst))
       lst
       (sublist_from_tail (cdr lst) l))))
-
 
 (define (([int] [int] -> [int]) merge)
   (lambda ([int] [int] -> [int]) (list1 list2)
